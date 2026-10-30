@@ -186,6 +186,79 @@
     #tabContentStats :not(i), #tabContentEdit :not(i) { font-size:18px !important; }
   }
 </style>
+<style>
+
+    /* 탭 내부 중제목은 거래 내역 제목과 같은 크기로 통일 */
+    #tabContentDashboard h3, #tabContentStats h3, #tabContentEdit h3,
+    #tabContentDashboard h2, #tabContentStats h2, #tabContentEdit h2 {
+      font-size: 1.125rem !important;
+      line-height: 1.75rem !important;
+    }
+    /* 탭 안의 일반 본문은 거래 내역의 생활비 항목 글자 크기(14px)에 맞춤 */
+    #txList .tx-category-label,
+    #tabContentDashboard .tab-body-text,
+    #tabContentStats .tab-body-text,
+    #tabContentEdit .tab-body-text { font-size: 0.875rem !important; }
+
+
+    /* 네 개 탭의 핵심 본문은 생활비 항목과 같은 14px로 통일 */
+    #tabContentDashboard, #tabContentList, #tabContentStats, #tabContentEdit {
+      font-size: 14px;
+    }
+    #tabContentDashboard h2, #tabContentDashboard h3,
+    #tabContentList h2, #tabContentList h3,
+    #tabContentStats h2, #tabContentStats h3,
+    #tabContentEdit h2, #tabContentEdit h3 {
+      font-size: 18px !important;
+      line-height: 1.5 !important;
+    }
+    /* 날짜·안내문·보조 설명 등 회색 보조 텍스트는 작고 차분하게 */
+    #tabContentDashboard .text-slate-400, #tabContentDashboard .text-slate-500,
+    #tabContentDashboard .text-gray-400, #tabContentDashboard .text-gray-500,
+    #tabContentList .text-slate-400, #tabContentList .text-slate-500,
+    #tabContentList .text-gray-400, #tabContentList .text-gray-500,
+    #tabContentStats .text-slate-400, #tabContentStats .text-slate-500,
+    #tabContentStats .text-gray-400, #tabContentStats .text-gray-500,
+    #tabContentEdit .text-slate-400, #tabContentEdit .text-slate-500,
+    #tabContentEdit .text-gray-400, #tabContentEdit .text-gray-500,
+    #tabContentDashboard .dark\:text-slate-400, #tabContentDashboard .dark\:text-slate-500,
+    #tabContentList .dark\:text-slate-400, #tabContentList .dark\:text-slate-500,
+    #tabContentStats .dark\:text-slate-400, #tabContentStats .dark\:text-slate-500,
+    #tabContentEdit .dark\:text-slate-400, #tabContentEdit .dark\:text-slate-500 {
+      font-size: 11px !important;
+      line-height: 1.4 !important;
+    }
+    /* 강조된 핵심 본문은 14px 유지 */
+    #tabContentDashboard .tab-body-text,
+    #tabContentStats .tab-body-text,
+    #tabContentEdit .tab-body-text,
+    #tabContentList .tx-category-label { font-size: 14px !important; }
+</style>
+
+<style id="unified-body-and-muted-text-sizes">
+  /* 핵심 본문은 생활비 항목과 같은 14px, 중제목은 거래 내역과 같은 18px */
+  #tabContentDashboard, #tabContentList, #tabContentStats, #tabContentEdit { font-size:14px; }
+  #tabContentDashboard h2, #tabContentDashboard h3,
+  #tabContentList h2, #tabContentList h3,
+  #tabContentStats h2, #tabContentStats h3,
+  #tabContentEdit h2, #tabContentEdit h3 { font-size:18px !important; line-height:1.5 !important; }
+
+  /* 날짜, 안내문 등 회색 보조 문구는 12px */
+  #tabContentDashboard :not(i).text-slate-400, #tabContentDashboard :not(i).text-slate-500,
+  #tabContentDashboard :not(i).text-gray-400, #tabContentDashboard :not(i).text-gray-500,
+  #tabContentList :not(i).text-slate-400, #tabContentList :not(i).text-slate-500,
+  #tabContentList :not(i).text-gray-400, #tabContentList :not(i).text-gray-500,
+  #tabContentStats :not(i).text-slate-400, #tabContentStats :not(i).text-slate-500,
+  #tabContentStats :not(i).text-gray-400, #tabContentStats :not(i).text-gray-500,
+  #tabContentEdit :not(i).text-slate-400, #tabContentEdit :not(i).text-slate-500,
+  #tabContentEdit :not(i).text-gray-400, #tabContentEdit :not(i).text-gray-500,
+  #tabContentDashboard :not(i).text-slate-300, #tabContentList :not(i).text-slate-300,
+  #tabContentStats :not(i).text-slate-300, #tabContentEdit :not(i).text-slate-300 {
+    font-size:12px !important; line-height:1.4 !important;
+  }
+  /* 핵심 거래 항목명은 14px 유지 */
+  #tabContentList .tx-category-label { font-size:14px !important; }
+</style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
 
@@ -349,7 +422,7 @@
             </h3>
             <div class="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400">총 수입 <span id="statSummaryIncome">0만원</span></div>
           </div>
-          <div id="statIncomeBar" class="flex w-full h-8 sm:h-10 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-700" role="img" aria-label="수입 기준 지출, 저축, 남은 잔액 비율 그래프">
+          <div id="statIncomeBar" class="flex w-full h-4 sm:h-5 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-700" role="img" aria-label="수입 기준 지출, 저축, 남은 잔액 비율 그래프">
             <div id="statExpenseBar" class="h-full bg-rose-500 transition-all" style="width:0%"></div>
             <div id="statSavingBar" class="h-full bg-indigo-500 transition-all" style="width:0%"></div>
             <div id="statBalanceBar" class="h-full bg-emerald-500 transition-all" style="width:0%"></div>
@@ -1275,7 +1348,7 @@
               <div>
                 <div class="flex items-center gap-2">
                   <span class="text-xs font-semibold px-2 py-0.5 rounded ${t.type === '지출' ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-300' : t.type === '수입' ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-300' : 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-300'}">${t.person}</span>
-                  <span class="font-bold text-sm">${t.subcategory}</span>
+                  <span class="tx-category-label font-bold text-sm">${t.subcategory}</span>
                 </div>
                 <div class="text-xs text-slate-400 mt-1">${t.date} · ${t.desc}</div>
               </div>
@@ -1308,6 +1381,12 @@
       return `${sign}${thousand}천원`;
     }
 
+    // 만원 단위로 반올림해 천원 단위가 표시되지 않도록 합니다.
+    function formatWholeManwon(amount) {
+      const rounded = Math.round((Number(amount) || 0) / 10000);
+      return `${rounded.toLocaleString('ko-KR')}만원`;
+    }
+
     function getCurrentMonthFixedItems(type) {
       const key = state.selectedMonth || currentMonthKey();
       return (state.fixedExpenses || []).filter(f => (f.type || '지출') === type && f.start <= key && (!f.end || f.end >= key) && (state.selectedMemberFilter === 'ALL' || f.person === state.selectedMemberFilter)).map(f => ({ ...f, displayAmount: Number((f.overrides || {})[key] ?? f.amount) }));
@@ -1318,7 +1397,7 @@
       Object.entries(map).forEach(([type, id]) => {
         const total = getCurrentMonthFixedItems(type).reduce((sum, item) => sum + item.displayAmount, 0);
         const button = document.getElementById(id);
-        if (button) button.textContent = formatRoundedManwon(total);
+        if (button) button.textContent = type === '지출' ? formatWholeManwon(total) : formatRoundedManwon(total);
       });
     }
 
@@ -1328,8 +1407,9 @@
       const [detailYear, detailMonth] = (state.selectedMonth || currentMonthKey()).split('-');
       document.getElementById('fixedMonthlyDetailTitle').textContent = `${String(detailYear).slice(-2)}.${String(detailMonth).padStart(2, '0')} 고정 ${type} 내역`;
       const host = document.getElementById('fixedMonthlyDetailList');
-      host.innerHTML = items.length ? items.map(item => `<div class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-3"><div class="min-w-0"><div class="font-semibold truncate">${escapeHtml(item.desc || item.name || item.subcategory || '고정 내역')}</div><div class="text-xs text-slate-500">${escapeHtml(item.person || '')} · ${escapeHtml(item.subcategory || '')} · 매월 ${Number(item.day) || 1}일</div></div><div class="font-bold whitespace-nowrap ${colors[type]}">${formatRoundedManwon(item.displayAmount)}</div></div>`).join('') : '<p class="text-center text-sm text-slate-400 py-6">이번 달 등록된 고정 내역이 없습니다.</p>';
-      document.getElementById('fixedMonthlyDetailTotal').textContent = formatRoundedManwon(items.reduce((sum, item) => sum + item.displayAmount, 0));
+      host.innerHTML = items.length ? items.map(item => `<div class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-3"><div class="min-w-0"><div class="font-semibold truncate">${escapeHtml(item.desc || item.name || item.subcategory || '고정 내역')}</div><div class="text-xs text-slate-500">${escapeHtml(item.person || '')} · ${escapeHtml(item.subcategory || '')} · 매월 ${Number(item.day) || 1}일</div></div><div class="font-bold whitespace-nowrap ${colors[type]}">${type === '지출' ? formatWholeManwon(item.displayAmount) : formatRoundedManwon(item.displayAmount)}</div></div>`).join('') : '<p class="text-center text-sm text-slate-400 py-6">이번 달 등록된 고정 내역이 없습니다.</p>';
+      const detailTotal = items.reduce((sum, item) => sum + item.displayAmount, 0);
+      document.getElementById('fixedMonthlyDetailTotal').textContent = type === '지출' ? formatWholeManwon(detailTotal) : formatRoundedManwon(detailTotal);
       openModal('modalFixedMonthlyDetails');
     }
 
@@ -1348,7 +1428,7 @@
       document.getElementById('statSummaryIncome').innerText = formatRoundedManwon(totalInc);
       document.getElementById('statSummaryExpense').innerText = formatRoundedManwon(totalExp);
       document.getElementById('statSummaryExpensePct').innerText = `${expPct}%`;
-      document.getElementById('statSummarySaving').innerText = formatRoundedManwon(totalSav);
+      document.getElementById('statSummarySaving').innerText = formatWholeManwon(totalSav);
       document.getElementById('statSummarySavingPct').innerText = `${savPct}%`;
       document.getElementById('statSummaryBalance').innerText = formatRoundedManwon(balance);
       document.getElementById('statSummaryBalancePct').innerText = `${balPct}%`;
@@ -1515,8 +1595,8 @@
         <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-700/40 px-3.5 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
           <span class="text-sm font-medium">${s}</span>
           <div class="flex items-center gap-2">
-            <button type="button" onclick="editSubcat('${state.editCategory}', ${idx})" class="text-xs px-2 py-1 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300 rounded-lg font-semibold hover:bg-indigo-100">수정</button>
-            <button type="button" onclick="deleteSubcat('${state.editCategory}', ${idx})" class="text-xs px-2 py-1 bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300 rounded-lg font-semibold hover:bg-rose-100">삭제</button>
+            <button type="button" onclick="editSubcat('${state.editCategory}', ${idx})" style="font-size:13.2px;padding:4.4px 8.8px" class="bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300 rounded-lg font-semibold hover:bg-indigo-100">수정</button>
+            <button type="button" onclick="deleteSubcat('${state.editCategory}', ${idx})" style="font-size:13.2px;padding:4.4px 8.8px" class="bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300 rounded-lg font-semibold hover:bg-rose-100">삭제</button>
           </div>
         </div>
       `).join('');
@@ -1537,8 +1617,8 @@
         <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-700/40 px-3.5 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
           <span class="text-sm font-medium">${d}</span>
           <div class="flex items-center gap-2">
-            <button type="button" onclick="editDesc('${descKey}', ${idx})" class="text-xs px-2 py-1 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300 rounded-lg font-semibold hover:bg-indigo-100">수정</button>
-            <button type="button" onclick="deleteDesc('${descKey}', ${idx})" class="text-xs px-2 py-1 bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300 rounded-lg font-semibold hover:bg-rose-100">삭제</button>
+            <button type="button" onclick="editDesc('${descKey}', ${idx})" style="font-size:13.2px;padding:4.4px 8.8px" class="bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300 rounded-lg font-semibold hover:bg-indigo-100">수정</button>
+            <button type="button" onclick="deleteDesc('${descKey}', ${idx})" style="font-size:13.2px;padding:4.4px 8.8px" class="bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300 rounded-lg font-semibold hover:bg-rose-100">삭제</button>
           </div>
         </div>
       `).join('');
