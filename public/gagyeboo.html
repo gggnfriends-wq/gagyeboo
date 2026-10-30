@@ -168,26 +168,22 @@
     appearance: none;
   }
 
-  /* 사이트 전역 최소 글씨 크기: 기간별 요약 제목(16px)을 기준으로 작은 글씨를 보정 */
-  body :not(i):not(svg):not(path):not(circle):not(rect):not(line):not(polyline):not(polygon):not(stop):not(use) {
-    font-size: max(16px, 1em) !important;
-  }
-  /* 아이콘은 원래 크기를 유지 */
-  i, .fa, [class^="fa-"], [class*=" fa-"] { font-size: revert !important; }
-  /* 모바일 탭은 글씨가 커져도 겹치지 않게 줄바꿈 허용 */
-  #tabBtnDashboard, #tabBtnList, #tabBtnStats, #tabBtnEdit {
-    min-width: 0; white-space: normal; overflow-wrap: anywhere;
-    line-height: 1.25; padding-left: 3px; padding-right: 3px;
-  }
-  /* 작은 화면의 금액·요약 영역은 줄바꿈으로 겹침 방지 */
-  #txList, #periodComparisons, #statIncomeBar + div,
-  #statIncomeBar + div > div { min-width: 0; }
-  #txList *, #periodComparisons *, #statSummaryIncome,
-  #statSummaryExpense, #statSummarySaving, #statSummaryBalance {
-    overflow-wrap: anywhere; word-break: normal;
-  }
-  @media (max-width: 380px) {
-    #tabBtnDashboard, #tabBtnList, #tabBtnStats, #tabBtnEdit { font-size: 16px !important; }
+
+  /* 요청된 화면별 글씨 크기: 모바일 16px, PC 18px */
+  #periodComparisons, #periodComparisons * { font-size:16px !important; line-height:1.45; }
+  #memberFilterList button, #memberFilterList button * { font-size:16px !important; line-height:1.35; }
+  #tabBtnDashboard, #tabBtnList, #tabBtnStats, #tabBtnEdit { font-size:16px !important; line-height:1.25; white-space:normal; }
+  #tabContentStats :not(i), #tabContentEdit :not(i) { font-size:16px !important; line-height:1.45; }
+  #tabContentStats .fa-solid, #tabContentEdit .fa-solid { font-size:inherit; }
+  #tabContentStats .flex, #tabContentEdit .flex { min-width:0; }
+  #tabContentStats .grid, #tabContentEdit .grid { min-width:0; }
+  #tabContentStats span, #tabContentEdit span, #tabContentStats div, #tabContentEdit div { overflow-wrap:anywhere; }
+  #tabContentStats .whitespace-nowrap, #tabContentEdit .whitespace-nowrap { white-space:normal !important; }
+  @media (min-width: 640px) {
+    #periodComparisons, #periodComparisons * { font-size:18px !important; }
+    #memberFilterList button, #memberFilterList button * { font-size:18px !important; }
+    #tabBtnDashboard, #tabBtnList, #tabBtnStats, #tabBtnEdit { font-size:18px !important; }
+    #tabContentStats :not(i), #tabContentEdit :not(i) { font-size:18px !important; }
   }
 </style>
 </head>
@@ -311,40 +307,11 @@
         <button type="button" id="tabBtnDashboard" onclick="switchTab('dashboard')" class="flex-1 py-3 text-center border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400">대시보드</button>
         <button type="button" id="tabBtnList" onclick="switchTab('list')" class="flex-1 py-3 text-center border-b-2 border-transparent text-slate-400">내역관리</button>
         <button type="button" id="tabBtnStats" onclick="switchTab('stats')" class="flex-1 py-3 text-center border-b-2 border-transparent text-slate-400">통계분석</button>
-        <button type="button" id="tabBtnEdit" onclick="switchTab('edit')" class="flex-1 py-3 text-center border-b-2 border-transparent text-slate-400">항목/내용편집</button>
+        <button type="button" id="tabBtnEdit" onclick="switchTab('edit')" class="flex-1 py-3 text-center border-b-2 border-transparent text-slate-400">항목관리</button>
       </div>
 
       <!-- [탭 1] 대시보드 -->
       <section id="tabContentDashboard" class="space-y-6">
-        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-6 text-center">
-          <h3 class="text-base sm:text-lg font-bold text-slate-700 dark:text-slate-200">수입 대비 자산 사용 현황</h3>
-          
-          <div class="relative w-40 h-40 mx-auto flex items-center justify-center">
-            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-              <path id="chartRing" stroke-width="5" stroke="#10b981" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-              <g id="chartSegments"></g>
-            </svg>
-            <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span class="text-xs text-slate-400">남은 잔액</span>
-              <span id="dashBalanceSum" class="text-base sm:text-lg font-bold text-amber-500 dark:text-amber-400">0원</span>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
-            <div class="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20">
-              <span class="text-xs text-emerald-600 block mb-0.5 font-semibold">총 수입</span>
-              <span id="dashInc" class="text-sm font-bold text-emerald-600">0원</span>
-            </div>
-            <div class="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/20">
-              <span class="text-xs text-rose-600 block mb-0.5 font-semibold">지출 (수입대비)</span>
-              <span id="dashExp" class="text-sm font-bold text-rose-600">0원 (0%)</span>
-            </div>
-            <div class="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/20">
-              <span class="text-xs text-indigo-600 block mb-0.5 font-semibold">저축 (수입대비)</span>
-              <span id="dashSav" class="text-sm font-bold text-indigo-600">0원 (0%)</span>
-            </div>
-          </div>
-        </div>
         <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-3">
           <div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-bold">이번 달 고정 내역</h3><span class="text-[11px] text-slate-400">금액을 누르면 상세 내역</span></div>
           <div class="grid grid-cols-3 gap-2 text-center">
@@ -1307,7 +1274,7 @@
             <div class="bg-white dark:bg-slate-800 p-3.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between shadow-sm">
               <div>
                 <div class="flex items-center gap-2">
-                  <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500">${t.person}</span>
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded ${t.type === '지출' ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-300' : t.type === '수입' ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-300' : 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-300'}">${t.person}</span>
                   <span class="font-bold text-sm">${t.subcategory}</span>
                 </div>
                 <div class="text-xs text-slate-400 mt-1">${t.date} · ${t.desc}</div>
@@ -1328,12 +1295,17 @@
       renderStats(filtered, inc, exp, sav);
     }
 
-    // 천원 단위로 반올림한 뒤 만원 단위(소수점 한 자리)로 표시합니다.
+    // 천원 단위로 반올림하고, 소수점 없이 만원·천원 단위로 표시합니다.
     function formatRoundedManwon(amount) {
       const value = Math.round((Number(amount) || 0) / 1000) * 1000;
       const sign = value < 0 ? '-' : '';
-      const manwon = Math.abs(value) / 10000;
-      return `${sign}${manwon.toLocaleString('ko-KR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}만원`;
+      const absolute = Math.abs(value);
+      const manwon = Math.floor(absolute / 10000);
+      const thousand = Math.round((absolute % 10000) / 1000);
+      if (thousand >= 10) return `${sign}${(manwon + 1).toLocaleString('ko-KR')}만원`;
+      if (manwon && thousand) return `${sign}${manwon.toLocaleString('ko-KR')}만 ${thousand}천원`;
+      if (manwon) return `${sign}${manwon.toLocaleString('ko-KR')}만원`;
+      return `${sign}${thousand}천원`;
     }
 
     function getCurrentMonthFixedItems(type) {
