@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>gagyeboo</title>
+  <script>
+    try { if (localStorage.getItem('gagyeboo_theme') === 'dark') document.documentElement.classList.add('dark'); } catch (_) {}
+  </script>
+
+  <!-- iOS 홈 화면 추가 관련 설정 (PWA / Web Clip) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="gagyeboo">
+
+  <!-- iPhone 홈 화면 아이콘: iOS 호환 PNG 파일 -->
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='115' fill='%236366f1'/><path d='M256 120 L120 226 L114 366 L398 366 L398 226 Z' fill='%23ffffff'/></svg>">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0284c7', 600: '#0284c7', 700: '#0369a1' }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  /* 모바일에서 큰 금액과 긴 거래명이 화면 밖으로 밀려나지 않도록 */
+  #txList > div { min-width: 0; gap: 8px; }
+  #txList > div > div:first-child { min-width: 0; flex: 1 1 auto; overflow-wrap: anywhere; }
+  #txList > div > div:last-child { min-width: 0; flex: 0 1 auto; gap: 6px; }
+  #txList .tx-amount { min-width: 0; max-width: 46vw; overflow-wrap: anywhere; word-break: break-all; text-align: right; font-size: clamp(11px, 3.2vw, 14px); }
+  #dashBalanceSum, #dashInc, #dashExp, #dashSav,
+  #statSummaryIncome, #statSummaryExpense, #statSummarySaving, #statSummaryBalance { overflow-wrap:anywhere; word-break:break-word; }
+  .summary-amount { min-width: 0; font-size: clamp(10px, 2.7vw, 13px); overflow-wrap: anywhere; word-break: keep-all; cursor: pointer; }
+  .summary-amount:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; border-radius: 4px; }
+  #monthTabs { scrollbar-width: thin; }
+  .month-selector-row { display:flex; align-items:center; gap:8px; min-height:64px; width:100%; }
+  /* 목록 버튼은 아래 고정비 버튼과 같은 왼쪽 기준선에 정렬 */
+  .month-selector-row > #monthListToggle { position:static; flex:0 0 44px; transform:none; }
+  .month-selector-center { flex:1 1 auto; min-width:0; display:flex; align-items:center; justify-content:center; gap:clamp(6px, 2vw, 12px); }
+  .month-nav-btn { width:44px; height:44px; flex:0 0 44px; border-radius:14px; display:flex; align-items:center; justify-content:center; background:#e2e8f0; color:#475569; font-size:18px; transition:background .15s, opacity .15s; }
+  #monthPrevBtn { justify-content:center; padding-left:0; }
+  #monthNextBtn { justify-content:center; padding-right:0; }
+  .dark .month-nav-btn { background:#334155; color:#cbd5e1; }
+  .month-nav-btn:disabled { opacity:1; cursor:not-allowed; }
+  .month-nav-btn:not(:disabled):active { transform:scale(.96); }
+  #monthTabs { min-width:0; flex:0 1 auto; display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:44px !important; line-height:1; font-weight:800; letter-spacing:-.06em; color:#0f172a; }
+  .month-archive-btn { width:44px; height:44px; flex:0 0 44px; border-radius:14px; display:flex; align-items:center; justify-content:center; background:#e2e8f0; color:#475569; font-size:18px; }
+  .dark .month-archive-btn { background:#334155; color:#cbd5e1; }
+  .month-archive-year { width:100%; display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-radius:12px; background:#e2e8f0; color:#1e293b; font-weight:700; }
+  .dark .month-archive-year { background:#263449; color:#f1f5f9; }
+  .month-archive-months { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:10px 4px 4px; }
+  .month-archive-month { padding:10px 6px; border-radius:10px; background:#fff; border:1px solid #cbd5e1; color:#334155; font-weight:600; }
+  .dark .month-archive-month { background:#1e293b; border-color:#475569; color:#e2e8f0; }
+  .month-archive-month.active { background:#4f46e5; border-color:#4f46e5; color:#fff; }
+  .dark #monthTabs { color:#f8fafc; }
+  @media (max-width: 380px) { #tabBtnDashboard, #tabBtnList, #tabBtnStats, #tabBtnEdit { font-size: 11px; } }
+
+    .summary-amount { flex: 0 1 auto; min-width: 0; max-width: 100%; overflow: hidden; font-size: clamp(0.68rem, 2.7vw, 0.95rem); font-variant-numeric: tabular-nums; }
+    .summary-amount:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; border-radius: 4px; }
+  /* 날짜/금액 입력칸 높이를 세부항목 입력칸과 동일한 44px로 통일 */
+  /* 날짜·금액: 사용 가능한 너비를 정확히 절반씩 배분하고 세부항목 입력칸(46px)과 높이 통일 */
+  #txDateAmountRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 12px;
+    width: 100%;
+  }
+  #txDateAmountRow > div { min-width: 0; width: 100%; }
+  #txDateAmountRow .tx-form-control {
+    display: block;
+    width: 100%; min-width: 0; max-width: 100%;
+    box-sizing: border-box; height: 46px; min-height: 46px;
+    padding-top: 10px; padding-bottom: 10px;
+    font-size: 16px; -webkit-appearance: none;
+  }
+  /* 구성원·결제일 / 시작월·종료월: 정확히 5:5, 항목명 입력칸(py-2)의 42px 높이와 통일 */
+  .fixed-pair-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 8px;
+    width: 100%;
+  }
+  .fixed-pair-row > div { min-width: 0; width: 100%; }
+  .fixed-pair-row .fixed-pair-control {
+    display: block; width: 100%; min-width: 0; max-width: 100%;
+    box-sizing: border-box; height: 42px; min-height: 42px;
+    padding-top: 8px; padding-bottom: 8px; font-size: 16px;
+  }
+  @media (max-width:380px) {
+    .month-selector-row { gap:6px; }
+    .month-selector-center { gap:5px; }
+    .month-nav-btn, .month-archive-btn { width:40px; height:40px; flex-basis:40px; }
+    #monthTabs { font-size:44px !important; letter-spacing:-.08em; }
+  }
+  #txDateAmountRow input[type="date"] {
+    inline-size: 100%; min-inline-size: 0; max-inline-size: 100%;
+    padding-inline: 10px;
+  }
+  /* 내역 추가 - 사람(대상) 선택 버튼을 더 크고 누르기 쉽게 */
+  #formPersonList { gap: 10px !important; }
+  #formPersonList button {
+    min-width: 88px;
+    min-height: 46px;
+    padding: 11px 20px !important;
+    border-radius: 14px;
+    font-size: 14px !important;
+    line-height: 1.4;
+    box-sizing: border-box;
+  }
+
+  /* 전체 입력 컨트롤 높이 기준: 44px */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="hidden"]),
+  select,
+  textarea {
+    box-sizing: border-box !important;
+    height: 44px !important;
+    min-height: 44px !important;
+  }
+  #txDateAmountRow .tx-form-control,
+  .fixed-pair-row .fixed-pair-control {
+    height: 44px !important;
+    min-height: 44px !important;
+  }
+  #formPersonList button {
+    height: 44px !important;
+    min-height: 44px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
+
+  <!-- 1. 로그인 / 회원가입 화면 -->
+  <div id="authView" class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 max-w-md w-full p-6 sm:p-8 rounded-3xl shadow-xl border border-slate-200/60 dark:border-slate-700/60 space-y-6">
+      <div class="flex justify-end">
+        <button type="button" onclick="toggleDarkMode()" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center gap-2" aria-label="다크/라이트 모드 전환">
+          <span class="text-xs font-semibold"><span class="dark:hidden">라이트</span><span class="hidden dark:inline">다크</span></span>
+          <i class="fa-solid fa-moon dark:hidden text-indigo-600"></i><i class="fa-solid fa-sun hidden dark:inline text-amber-400"></i>
+        </button>
+      </div>
+      <div class="text-center space-y-2">
+        <!-- 동그라미 친 아이콘 박스 (집 아이콘 반영) -->
+        <div class="w-16 h-16 rounded-3xl bg-indigo-600 text-white flex items-center justify-center mx-auto text-2xl shadow-lg shadow-indigo-500/30">
+          <i class="fa-solid fa-house-chimney"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">gagyeboo</h1>
+        <!-- 요청하신 문구 반영 -->
+        <p class="text-xs text-slate-400">우리 가족만의 비밀 가계부</p>
+      </div>
+
+      <!-- 로그인 / 가입 탭 -->
+      <div class="flex border-b border-slate-200 dark:border-slate-700 text-sm font-semibold">
+        <button id="authTabLogin" type="button" onclick="switchAuthTab('login')" class="flex-1 py-2.5 border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400">로그인</button>
+        <button id="authTabRegister" type="button" onclick="switchAuthTab('register')" class="flex-1 py-2.5 border-b-2 border-transparent text-slate-400">새 가계부 만들기</button>
+      </div>
+
+      <!-- 로그인 폼 -->
+      <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">가계부 ID (아이디)</label>
+          <input type="text" id="loginId" placeholder="예: gagyeboo123" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">비밀번호</label>
+          <input type="password" id="loginPw" placeholder="비밀번호 입력" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div class="space-y-2">
+          <label class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-300 select-none">
+            <input type="checkbox" id="rememberId" class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+            아이디 저장
+          </label>
+          <label class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-300 select-none">
+            <input type="checkbox" id="autoLogin" class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+            자동 로그인 <span class="text-xs text-slate-400">(이 기기에서만 로그인 유지)</span>
+          </label>
+        </div>
+        <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all">로그인</button>
+      </form>
+
+      <!-- 회원가입 폼 -->
+      <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">새 가계부 ID (가족과 공유할 아이디)</label>
+          <input type="text" id="regId" placeholder="예: 철수네가계부" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">비밀번호</label>
+          <input type="password" id="regPw" placeholder="비밀번호 설정" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <p class="text-xs text-slate-400">💡 아이디와 비밀번호는 2개 이상의 기기에서 같은 가계부에 로그인할 때 사용합니다. 비밀번호는 8자 이상으로 설정하세요.</p>
+        <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all">가계부 개설하기</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. 메인 가계부 화면 -->
+  <div id="mainAppView" class="hidden">
+    <!-- 상단 헤더 & 테마 토글 / 로그아웃 -->
+    <header class="sticky top-0 z-30 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold">
+          <i class="fa-solid fa-house-chimney"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white" id="appHeaderTitle">가계부</h1>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="themeToggle" type="button" onclick="toggleDarkMode()" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all flex items-center gap-2" aria-label="다크/라이트 모드 전환">
+          <span class="text-xs font-semibold"><span class="dark:hidden">라이트</span><span class="hidden dark:inline">다크</span></span>
+          <i class="fa-solid fa-moon dark:hidden text-indigo-600"></i>
+          <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+        </button>
+        <button type="button" onclick="handleLogout()" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-xs font-semibold text-slate-500 hover:text-slate-800">
+          로그아웃
+        </button>
+      </div>
+    </header>
+
+    <!-- 메인 레이아웃 -->
+    <main class="max-w-2xl mx-auto px-4 py-6 space-y-6 pb-24">
+
+      <!-- 조회 대상 필터 -->
+      <section class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700/60">
+        <div class="text-xs font-semibold text-slate-400 dark:text-slate-400 mb-2">조회 대상</div>
+        <div id="memberFilterList" class="flex flex-wrap gap-2"></div>
+      </section>
+
+      <!-- 월별 조회: 거래가 입력된 달과 현재 달만 표시 -->
+      <section class="bg-white dark:bg-slate-800 rounded-2xl p-3 shadow-sm border border-slate-200/60 dark:border-slate-700/60">
+        <div class="month-selector-row flex items-center justify-center py-1">
+          <button id="monthListToggle" type="button" onclick="toggleMonthArchive()" class="month-archive-btn" aria-label="입력 내역이 있는 연도와 월 목록 보기" aria-expanded="false"><i class="fa-solid fa-list"></i></button>
+          <div class="month-selector-center flex items-center justify-center">
+            <button id="monthPrevBtn" type="button" onclick="moveMonth(-1)" class="month-nav-btn" aria-label="이전 달"><i class="fa-solid fa-chevron-left" style="font-size:18px;color:inherit"></i></button>
+            <div id="monthTabs" aria-live="polite"></div>
+            <button id="monthNextBtn" type="button" onclick="moveMonth(1)" class="month-nav-btn" aria-label="다음 달"><i class="fa-solid fa-chevron-right" style="font-size:18px;color:inherit"></i></button>
+          </div>
+        </div>
+        <div id="monthArchivePanel" class="hidden mt-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 p-3">
+          <div class="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">내역이 있는 연도 선택</div>
+          <div id="monthArchiveYears" class="space-y-2"></div>
+        </div>
+        <button type="button" onclick="openFixedExpenseManager()" class="mt-3 w-full py-2.5 rounded-xl border border-indigo-200 dark:border-indigo-900 text-indigo-600 dark:text-indigo-300 text-sm font-bold">
+          <i class="fa-solid fa-repeat mr-1"></i> 고정비 등록 / 관리
+        </button>
+      </section>
+
+      <!-- 상단 탭 버튼 -->
+      <div class="flex border-b border-slate-200 dark:border-slate-700 text-sm font-semibold">
+        <button type="button" id="tabBtnDashboard" onclick="switchTab('dashboard')" class="flex-1 py-3 text-center border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400">대시보드</button>
+        <button type="button" id="tabBtnList" onclick="switchTab('list')" class="flex-1 py-3 text-center border-b-2 border-transparent text-slate-400">내역관리</button>
+        <button type="button" id="tabBtnStats" onclick="switchTab('stats')" class="flex-1 py-3 text-center border-b-2 border-transparent text-slate-400">통계분석</button>
+        <button type="button" id="tabBtnEdit" onclick="switchTab('edit')" class="flex-1 py-3 text-center border-b-2 border-transparent text-slate-400">항목/내용편집</button>
+      </div>
+
+      <!-- [탭 1] 대시보드 -->
+      <section id="tabContentDashboard" class="space-y-6">
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-6 text-center">
+          <h3 class="text-base font-bold text-slate-700 dark:text-slate-200">수입 대비 자산 사용 현황</h3>
+          
+          <div class="relative w-48 h-48 mx-auto flex items-center justify-center">
+            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+              <path id="chartRing" class="text-slate-100 dark:text-slate-700" stroke-width="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <g id="chartSegments"></g>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+              <span class="text-xs text-slate-400">수입 대비 남은 잔액</span>
+              <span id="dashBalanceSum" class="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400">0원</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
+            <div class="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20">
+              <span class="text-xs text-emerald-600 block mb-0.5 font-semibold">총 수입</span>
+              <span id="dashInc" class="text-sm font-bold text-emerald-600">0원</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/20">
+              <span class="text-xs text-rose-600 block mb-0.5 font-semibold">지출 (수입대비)</span>
+              <span id="dashExp" class="text-sm font-bold text-rose-600">0원 (0%)</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/20">
+              <span class="text-xs text-indigo-600 block mb-0.5 font-semibold">저축 (수입대비)</span>
+              <span id="dashSav" class="text-sm font-bold text-indigo-600">0원 (0%)</span>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-3">
+          <h3 class="text-sm font-bold">기간별 수입·지출·저축 요약</h3>
+          <div id="periodComparisons" class="space-y-2 text-xs"></div>
+        </div>
+
+      </section>
+
+      <!-- [탭 2] 내역 관리 -->
+      <section id="tabContentList" class="space-y-4 hidden">
+        <div class="flex justify-between items-center">
+          <h2 class="text-lg font-bold">거래 내역</h2>
+          <button type="button" onclick="openModal('modalAddTx')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-xl shadow-sm transition-all flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> 내역 추가
+          </button>
+        </div>
+        <div id="txList" class="space-y-2"></div>
+      </section>
+
+      <!-- [탭 3] 통계 분석 -->
+      <section id="tabContentStats" class="space-y-6 hidden">
+        <!-- 1. 수입 기준 종합 요약 -->
+        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-3">
+          <h3 class="text-base font-bold flex items-center gap-2 text-slate-800 dark:text-slate-100">
+            <i class="fa-solid fa-chart-pie text-indigo-500"></i> 수입 기준 전체 요약
+          </h3>
+          <div class="grid grid-cols-4 gap-2 text-center text-xs">
+            <div class="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/20">
+              <span class="text-slate-500 dark:text-slate-400 block mb-1">총 수입</span>
+              <span id="statSummaryIncome" class="font-bold text-emerald-600 dark:text-emerald-400 block">0원</span>
+              <span class="text-[10px] text-slate-400">(100%)</span>
+            </div>
+            <div class="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/20">
+              <span class="text-slate-500 dark:text-slate-400 block mb-1">총 지출</span>
+              <span id="statSummaryExpense" class="font-bold text-rose-600 block">0원</span>
+              <span id="statSummaryExpensePct" class="text-[10px] font-semibold text-rose-500">(0%)</span>
+            </div>
+            <div class="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/20">
+              <span class="text-slate-500 dark:text-slate-400 block mb-1">총 저축</span>
+              <span id="statSummarySaving" class="font-bold text-indigo-600 block">0원</span>
+              <span id="statSummarySavingPct" class="text-[10px] font-semibold text-indigo-500">(0%)</span>
+            </div>
+            <div class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/20">
+              <span class="text-slate-500 dark:text-slate-400 block mb-1">남은 잔액</span>
+              <span id="statSummaryBalance" class="font-bold text-amber-600 block">0원</span>
+              <span id="statSummaryBalancePct" class="text-[10px] font-semibold text-amber-500">(0%)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 세부 항목별 계층 통계 -->
+        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-4">
+          <div class="flex flex-col items-start gap-1">
+            <h3 class="text-base font-bold flex items-center gap-2 whitespace-nowrap">
+              <i class="fa-solid fa-layer-group text-indigo-500"></i> 항목별 세부 비율 분석
+            </h3>
+            <span class="text-[11px] text-slate-400 whitespace-nowrap">💡 항목/내용을 누르면 내역이 펼쳐집니다</span>
+          </div>
+          <div id="statsBreakdown" class="space-y-6"></div>
+        </div>
+      </section>
+
+      <!-- [탭 4] 항목/내용 편집 탭 -->
+      <section id="tabContentEdit" class="space-y-6 hidden">
+        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-4">
+          <h3 class="text-base font-bold flex items-center gap-2"><i class="fa-solid fa-pen-to-square text-indigo-500"></i> 세부항목 관리</h3>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" onclick="switchEditCategory('수입')" id="editTypeIncome" class="py-2 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-500 dark:bg-emerald-950/30 dark:text-emerald-400">수입</button>
+            <button type="button" onclick="switchEditCategory('지출')" id="editTypeExpense" class="py-2 rounded-lg text-xs font-bold text-slate-500 border border-slate-200">지출</button>
+            <button type="button" onclick="switchEditCategory('저축')" id="editTypeSaving" class="py-2 rounded-lg text-xs font-bold text-slate-500 border border-slate-200">저축</button>
+          </div>
+          <div class="flex gap-2">
+            <input type="text" id="newSubcatInput" placeholder="추가할 세부항목 이름 입력" class="flex-1 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-sm">
+            <button type="button" onclick="addSubcategory()" class="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl">추가</button>
+          </div>
+          <div id="subcatManageList" class="space-y-2 pt-2"></div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-4">
+          <h3 class="text-base font-bold flex items-center gap-2"><i class="fa-solid fa-tags text-indigo-500"></i> 내용(적요) 관리</h3>
+          <div class="space-y-2">
+            <label class="block text-xs font-semibold text-slate-500">내용을 편집할 세부항목 선택</label>
+            <select id="editSubcatSelect" onchange="renderEditManager()" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-sm"></select>
+          </div>
+          <div class="flex gap-2">
+            <input type="text" id="newDescInput" placeholder="추가할 내용 입력" class="flex-1 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-sm">
+            <button type="button" onclick="addDescription()" class="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl">추가</button>
+          </div>
+          <div id="descManageList" class="space-y-2 pt-2"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- [모달] 구성원 추가 -->
+  <div id="modalAddMember" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
+      <h3 class="text-lg font-bold">새 구성원 추가</h3>
+      <input type="text" id="newMemberName" placeholder="이름 (예: 남편, 아내 등)" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick="closeModal('modalAddMember')" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium">취소</button>
+        <button type="button" onclick="saveMember()" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium">추가</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- [모달] 거래 내역 추가 -->
+  <div id="modalAddTx" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-3">
+        <h3 class="text-lg font-bold">가계부 작성</h3>
+        <button type="button" onclick="closeModal('modalAddTx')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+      </div>
+
+      <form id="txForm" onsubmit="handleTxSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">사람 (대상)</label>
+          <div id="formPersonList" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">항목</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" onclick="selectType('수입')" id="typeBtnIncome" class="py-2.5 rounded-xl font-bold border border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600">수입</button>
+            <button type="button" onclick="selectType('지출')" id="typeBtnExpense" class="py-2.5 rounded-xl font-bold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">지출</button>
+            <button type="button" onclick="selectType('저축')" id="typeBtnSaving" class="py-2.5 rounded-xl font-bold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">저축</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">세부 항목</label>
+          <select id="formSubcategory" onchange="handleSubcatChange()" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-indigo-500 mb-2"></select>
+          <input type="text" id="formCustomSubcat" placeholder="세부항목 직접 입력" class="w-full px-4 py-2.5 rounded-xl border border-indigo-400 dark:bg-slate-700 hidden">
+        </div>
+
+        <div id="txDateAmountRow" class="grid grid-cols-2 gap-3">
+          <div class="min-w-0">
+            <label class="block text-xs font-semibold text-slate-500 mb-1">날짜</label>
+            <input type="date" id="formDate" required class="tx-form-control w-full min-w-0 max-w-full box-border block px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700">
+          </div>
+          <div class="min-w-0">
+            <label class="block text-xs font-semibold text-slate-500 mb-1">금액(원)</label>
+            <input type="number" id="formAmount" inputmode="numeric" placeholder="0" required class="tx-form-control w-full min-w-0 max-w-full box-border block px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">내용</label>
+          <select id="formDescSelect" onchange="handleDescChange()" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-indigo-500 mb-2"></select>
+          <input type="text" id="formCustomDesc" placeholder="내용 직접 입력" class="w-full px-4 py-2.5 rounded-xl border border-indigo-400 dark:bg-slate-700 hidden">
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all">저장하기</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 고정비 등록/관리 -->
+  <div id="modalFixedExpenses" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-3">
+        <h3 class="text-lg font-bold">고정비 등록 / 관리</h3>
+        <button type="button" onclick="closeModal('modalFixedExpenses')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+      </div>
+      <div id="fixedExpenseList" class="space-y-3"></div>
+      <div class="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-3">
+        <h4 id="fixedExpenseFormTitle" class="font-bold">새 고정비 등록</h4>
+        <input type="hidden" id="fixedExpenseId">
+        <div class="fixed-pair-row">
+          <div><label class="block text-xs text-slate-500 mb-1">구성원</label><select id="fixedPerson" class="fixed-pair-control rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3"></select></div>
+          <div><label class="block text-xs text-slate-500 mb-1">매월 결제일</label><input id="fixedDay" type="number" min="1" max="31" value="25" class="fixed-pair-control rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3"></div>
+        </div>
+        <div><label class="block text-xs text-slate-500 mb-1">항목명</label><input id="fixedName" type="text" placeholder="예: 교통비, 월세, 보험료" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-2"></div>
+        <div><label class="block text-xs text-slate-500 mb-1">매월 금액(원)</label><input id="fixedAmount" type="number" min="0" placeholder="100000" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-2"></div>
+        <div class="fixed-pair-row">
+          <div><label class="block text-xs text-slate-500 mb-1">시작 월</label><input id="fixedStart" type="month" class="fixed-pair-control rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3"></div>
+          <div><label class="block text-xs text-slate-500 mb-1">종료 월 (선택)</label><input id="fixedEnd" type="month" class="fixed-pair-control rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3"></div>
+        </div>
+        <p class="text-xs text-slate-400">종료 월을 비워두면 기한 없이 매월 자동 등록됩니다. 이미 지난 달의 내역은 자동으로 중복 생성하지 않습니다.</p>
+        <div class="flex gap-2"><button type="button" onclick="resetFixedExpenseForm()" class="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-700">초기화</button><button type="button" onclick="saveFixedExpense()" class="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white font-bold">저장</button></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 인증 및 데이터 저장은 Netlify Functions를 통해 서버에서 처리합니다.
+    const API_BASE = '/.netlify/functions';
+    // 자동 로그인 체크 시에만 이 기기의 localStorage에 토큰을 보관합니다.
+    // 체크하지 않은 로그인은 메모리에만 유지하므로 새로고침/재접속 시 반드시 다시 로그인해야 합니다.
+    const autoLoginWasEnabled = localStorage.getItem('gagyeboo_auto_login_enabled') === 'true';
+    let authToken = autoLoginWasEnabled ? (localStorage.getItem('gagyeboo_auth_token') || '') : '';
+    // 이전 버전에서 저장된 세션 토큰도 더 이상 로그인에 사용하지 않습니다.
+    sessionStorage.removeItem('gagyeboo_session_auth_token');
+    if (!autoLoginWasEnabled || !authToken) {
+      localStorage.removeItem('gagyeboo_auth_token');
+      localStorage.removeItem('gagyeboo_auto_login_enabled');
+    }
+
+    const DEFAULT_SUBCATS = {
+      '수입': ['월급여(소득)', '부수입'],
+      '지출': ['고정비', '생활비', '여가비', '비상금'],
+      '저축': ['예금/적금', '저금']
+    };
+
+    // 로그인 토큰은 기기별 브라우저에 보관하고, 테마는 계정 데이터와 동기화합니다.
+    let currentAccount = null;
+    let monthArchiveOpen = false;
+    let expandedArchiveYear = null;
+    let state = {
+      members: [],
+      selectedMemberFilter: 'ALL',
+      selectedMonth: new Date().toISOString().slice(0, 7),
+      transactions: [],
+      fixedExpenses: [],
+      customSubcats: JSON.parse(JSON.stringify(DEFAULT_SUBCATS)),
+      customDescs: {},
+      formType: '수입',
+      formPerson: '',
+      editCategory: '수입',
+      theme: localStorage.getItem('gagyeboo_theme') || 'light'
+    };
+
+    document.getElementById('formDate').valueAsDate = new Date();
+
+    // 아이디 저장은 로그인 폼 편의를 위한 기능이며, 자동 로그인 토큰과는 별개입니다.
+    const rememberedId = localStorage.getItem('remembered_account_id') || '';
+    document.getElementById('loginId').value = rememberedId;
+    document.getElementById('rememberId').checked = Boolean(rememberedId);
+    document.getElementById('autoLogin').checked = autoLoginWasEnabled && Boolean(authToken);
+
+    function switchAuthTab(tab) {
+      if (tab === 'login') {
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.getElementById('registerForm').classList.add('hidden');
+        document.getElementById('authTabLogin').className = "flex-1 py-2.5 border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400 font-semibold";
+        document.getElementById('authTabRegister').className = "flex-1 py-2.5 border-b-2 border-transparent text-slate-400 font-semibold";
+      } else {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('registerForm').classList.remove('hidden');
+        document.getElementById('authTabLogin').className = "flex-1 py-2.5 border-b-2 border-transparent text-slate-400 font-semibold";
+        document.getElementById('authTabRegister').className = "flex-1 py-2.5 border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400 font-semibold";
+      }
+    }
+
+    async function apiRequest(endpoint, method='GET', body=null) {
+      const headers = { 'Content-Type': 'application/json' };
+      if (authToken) headers.Authorization = `Bearer ${authToken}`;
+      const response = await fetch(`${API_BASE}/${endpoint}`, {
+        method, headers, ...(body ? { body: JSON.stringify(body) } : {})
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || '요청을 처리하지 못했습니다.');
+      return result;
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const id = document.getElementById('regId').value.trim();
+      const pw = document.getElementById('regPw').value;
+      if (id.length < 2) { alert('아이디는 2글자 이상 입력해주세요.'); return; }
+      if (id.length > 40) { alert('아이디는 40자 이하로 입력해주세요.'); return; }
+      if (pw.length < 8) { alert('비밀번호는 8자 이상으로 설정해주세요.'); return; }
+      try {
+        await apiRequest('auth-register', 'POST', { id, password: pw });
+        alert('가계부 개설 완료! 설정한 아이디와 비밀번호로 로그인해주세요.');
+        switchAuthTab('login');
+        document.getElementById('loginId').value = id;
+        document.getElementById('loginPw').value = '';
+      } catch (err) {
+        alert(`가계부 개설에 실패했습니다: ${err.message}`);
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const id = document.getElementById('loginId').value.trim();
+      const pw = document.getElementById('loginPw').value;
+      try {
+        const result = await apiRequest('auth-login', 'POST', { id, password: pw });
+        authToken = result.token;
+        if (document.getElementById('autoLogin').checked) {
+          localStorage.setItem('gagyeboo_auth_token', authToken);
+          localStorage.setItem('gagyeboo_auto_login_enabled', 'true');
+          sessionStorage.removeItem('gagyeboo_session_auth_token');
+        } else {
+          localStorage.removeItem('gagyeboo_auth_token');
+          localStorage.removeItem('gagyeboo_auto_login_enabled');
+          sessionStorage.removeItem('gagyeboo_session_auth_token');
+        }
+        if (document.getElementById('rememberId').checked) {
+          localStorage.setItem('remembered_account_id', id);
+        } else {
+          localStorage.removeItem('remembered_account_id');
+        }
+        currentAccount = (result.account && (result.account.username || result.account.id)) || id;
+        document.getElementById('appHeaderTitle').innerText = `${currentAccount} 가계부`;
+        localStorage.setItem('gagyeboo_account_name', currentAccount);
+        await loadAccountData(currentAccount);
+      } catch (err) {
+        alert(`로그인에 실패했습니다: ${err.message}`);
+      }
+    }
+
+    async function loadAccountData(accId) {
+      try {
+        const result = await apiRequest('gagyeboo-data', 'GET');
+        const savedData = result.data || {};
+        state.members = savedData.members || [];
+        state.transactions = savedData.transactions || [];
+        state.fixedExpenses = savedData.fixedExpenses || [];
+        state.customSubcats = savedData.customSubcats || JSON.parse(JSON.stringify(DEFAULT_SUBCATS));
+        state.customDescs = savedData.customDescs || {};
+        state.theme = savedData.theme === 'dark' ? 'dark' : (savedData.theme === 'light' ? 'light' : (localStorage.getItem('gagyeboo_theme') || 'light'));
+        applyTheme(state.theme, true);
+        state.selectedMemberFilter = 'ALL';
+        state.selectedMonth = currentMonthKey();
+        ensureFixedExpensesThroughCurrentMonth(false);
+
+        document.getElementById('authView').classList.add('hidden');
+        document.getElementById('mainAppView').classList.remove('hidden');
+        document.getElementById('appHeaderTitle').innerText = `${accId} 가계부`;
+        renderFilter();
+        renderUI();
+        renderEditManager();
+      } catch (err) {
+        console.error('가계부 불러오기 실패:', err);
+        alert(`서버에서 가계부를 불러오지 못했습니다: ${err.message}`);
+        currentAccount = null;
+        authToken = '';
+        localStorage.removeItem('gagyeboo_auth_token');
+        localStorage.removeItem('gagyeboo_auto_login_enabled');
+        sessionStorage.removeItem('gagyeboo_session_auth_token');
+        document.getElementById('authView').classList.remove('hidden');
+        document.getElementById('mainAppView').classList.add('hidden');
+      }
+    }
+
+    async function saveState() {
+      if (!currentAccount || !authToken) return;
+      const dataToSave = {
+        members: state.members,
+        transactions: state.transactions,
+        fixedExpenses: state.fixedExpenses || [],
+        customSubcats: state.customSubcats,
+        customDescs: state.customDescs,
+        theme: state.theme || (document.documentElement.classList.contains('dark') ? 'dark' : 'light')
+      };
+      try {
+        await apiRequest('gagyeboo-data', 'PUT', { data: dataToSave });
+      } catch (error) {
+        console.error('가계부 저장 실패:', error);
+        alert(`서버 저장에 실패했습니다: ${error.message}. 입력 내용이 저장되지 않았을 수 있습니다.`);
+      }
+    }
+
+    async function handleLogout() {
+      authToken = '';
+      localStorage.removeItem('gagyeboo_auth_token');
+      localStorage.removeItem('gagyeboo_auto_login_enabled');
+      sessionStorage.removeItem('gagyeboo_session_auth_token');
+      localStorage.removeItem('gagyeboo_account_name');
+      currentAccount = null;
+      document.getElementById('authView').classList.remove('hidden');
+      document.getElementById('mainAppView').classList.add('hidden');
+      document.getElementById('loginPw').value = '';
+    }
+
+    function applyTheme(theme, persistLocal = true) {
+      const normalized = theme === 'dark' ? 'dark' : 'light';
+      document.documentElement.classList.toggle('dark', normalized === 'dark');
+      state.theme = normalized;
+      if (persistLocal) localStorage.setItem('gagyeboo_theme', normalized);
+    }
+
+    function toggleDarkMode() {
+      const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+      applyTheme(next, true);
+      // 로그인 상태에서는 계정 서버에도 저장되어 다른 기기와 동기화됩니다.
+      if (currentAccount && authToken) saveState();
+    }
+
+    function renderFilter() {
+      const container = document.getElementById('memberFilterList');
+      let html = `
+        <button type="button" onclick="setFilter('ALL')" class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+          state.selectedMemberFilter === 'ALL' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+        }">전체(모두)</button>
+      `;
+      state.members.forEach(m => {
+        const isSel = state.selectedMemberFilter === m;
+        html += `
+          <button type="button" onclick="setFilter('${m}')" class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+            isSel ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+          }">${m}</button>
+        `;
+      });
+      html += `
+        <button type="button" onclick="openModal('modalAddMember')" class="px-3.5 py-1.5 rounded-full text-xs font-semibold border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:border-indigo-500 flex items-center gap-1">
+          <i class="fa-solid fa-plus"></i> 구성원 추가
+        </button>
+      `;
+      container.innerHTML = html;
+    }
+
+    function setFilter(m) {
+      state.selectedMemberFilter = m;
+      renderFilter();
+      renderUI();
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+      if (id === 'modalAddTx') prepareTxForm();
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function saveMember() {
+      const input = document.getElementById('newMemberName');
+      const name = input.value.trim();
+      if (name && !state.members.includes(name)) {
+        state.members.push(name);
+        input.value = '';
+        closeModal('modalAddMember');
+        saveState();
+        renderFilter();
+      }
+    }
+
+    function selectType(type) {
+      state.formType = type;
+      ['Income', 'Expense', 'Saving'].forEach(t => {
+        const btn = document.getElementById(`typeBtn${t}`);
+        btn.className = "py-2.5 rounded-xl font-bold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300";
+      });
+      const activeBtnMap = { '수입': 'Income', '지출': 'Expense', '저축': 'Saving' };
+      const activeColorMap = { '수입': 'emerald', '지출': 'rose', '저축': 'indigo' };
+      const activeBtn = document.getElementById(`typeBtn${activeBtnMap[type]}`);
+      const color = activeColorMap[type];
+      activeBtn.className = `py-2.5 rounded-xl font-bold border border-${color}-500 bg-${color}-50 dark:bg-${color}-950/30 text-${color}-600`;
+
+      populateSubcats();
+    }
+
+    function prepareTxForm() {
+      const pContainer = document.getElementById('formPersonList');
+      if (state.members.length === 0) {
+        pContainer.innerHTML = `<span class="text-xs text-rose-500">등록된 구성원이 없습니다. 먼저 추가해주세요!</span>`;
+        return;
+      }
+
+      if (state.selectedMemberFilter !== 'ALL' && state.members.includes(state.selectedMemberFilter)) {
+        state.formPerson = state.selectedMemberFilter;
+      } else if (!state.members.includes(state.formPerson)) {
+        state.formPerson = state.members[0];
+      }
+
+      pContainer.innerHTML = state.members.map(p => `
+        <button type="button" onclick="selectFormPerson('${p}')" class="px-5 py-3 rounded-xl text-sm font-semibold border ${
+          state.formPerson === p ? 'border-indigo-600 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40' : 'border-slate-200 dark:border-slate-700'
+        }">${p}</button>
+      `).join('');
+      selectType(state.formType || '수입');
+    }
+
+    function selectFormPerson(p) {
+      state.formPerson = p;
+      prepareTxForm();
+    }
+
+    function populateSubcats() {
+      const subSelect = document.getElementById('formSubcategory');
+      const subcats = state.customSubcats[state.formType] || [];
+      let html = subcats.map(s => `<option value="${s}">${s}</option>`).join('');
+      html += `<option value="항목추가(직접입력)">항목추가(직접입력)</option>`;
+      subSelect.innerHTML = html;
+      handleSubcatChange();
+    }
+
+    function handleSubcatChange() {
+      const subSelect = document.getElementById('formSubcategory');
+      const customInput = document.getElementById('formCustomSubcat');
+      if (subSelect.value === '항목추가(직접입력)') {
+        customInput.classList.remove('hidden');
+        customInput.value = '';
+        customInput.focus();
+      } else {
+        customInput.classList.add('hidden');
+      }
+      populateDescs();
+    }
+
+    function populateDescs() {
+      const subSelect = document.getElementById('formSubcategory');
+      let currentSub = subSelect.value === '항목추가(직접입력)' ? '기타' : subSelect.value;
+      const descKey = `${state.formType}_${currentSub}`;
+      const descs = state.customDescs[descKey] || ['내용없음'];
+
+      const descSelect = document.getElementById('formDescSelect');
+      let html = descs.map(d => `<option value="${d}">${d}</option>`).join('');
+      html += `<option value="내용추가(직접입력)">내용추가(직접입력)</option>`;
+      descSelect.innerHTML = html;
+      handleDescChange();
+    }
+
+    function handleDescChange() {
+      const descSelect = document.getElementById('formDescSelect');
+      const customDescInput = document.getElementById('formCustomDesc');
+      if (descSelect.value === '내용추가(직접입력)') {
+        customDescInput.classList.remove('hidden');
+        customDescInput.value = '';
+        customDescInput.focus();
+      } else {
+        customDescInput.classList.add('hidden');
+      }
+    }
+
+    function handleTxSubmit(e) {
+      e.preventDefault();
+      if (!state.formPerson) {
+        alert('구성원을 선택해주세요.');
+        return;
+      }
+
+      const subSelect = document.getElementById('formSubcategory');
+      let finalSubcat = subSelect.value;
+      if (finalSubcat === '항목추가(직접입력)') {
+        finalSubcat = document.getElementById('formCustomSubcat').value.trim();
+        if (!finalSubcat) {
+          alert('세부항목 이름을 입력해주세요.');
+          return;
+        }
+        const list = state.customSubcats[state.formType];
+        if (!list.includes(finalSubcat)) list.push(finalSubcat);
+      }
+
+      const descSelect = document.getElementById('formDescSelect');
+      let finalDesc = descSelect.value;
+      if (finalDesc === '내용추가(직접입력)') {
+        finalDesc = document.getElementById('formCustomDesc').value.trim();
+        if (!finalDesc) {
+          alert('내용을 입력해주세요.');
+          return;
+        }
+      }
+
+      const descKey = `${state.formType}_${finalSubcat}`;
+      if (!state.customDescs[descKey]) state.customDescs[descKey] = ['내용없음'];
+      if (!state.customDescs[descKey].includes(finalDesc)) {
+        state.customDescs[descKey].push(finalDesc);
+      }
+
+      const newTx = {
+        id: Date.now(),
+        person: state.formPerson,
+        type: state.formType,
+        subcategory: finalSubcat,
+        date: document.getElementById('formDate').value,
+        amount: parseInt(document.getElementById('formAmount').value) || 0,
+        desc: finalDesc
+      };
+
+      state.transactions.unshift(newTx);
+      saveState();
+      closeModal('modalAddTx');
+      renderUI();
+      renderEditManager();
+    }
+
+    function deleteTx(id) {
+      if (confirm('정말 이 내역을 삭제하시겠습니까?')) {
+        state.transactions = state.transactions.filter(t => t.id !== id);
+        saveState();
+        renderUI();
+      }
+    }
+
+    function openFixedExpenseManager() {
+      const person = document.getElementById('fixedPerson');
+      person.innerHTML = (state.members || []).map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+      resetFixedExpenseForm();
+      renderFixedExpenseList();
+      openModal('modalFixedExpenses');
+    }
+    function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function resetFixedExpenseForm() {
+      document.getElementById('fixedExpenseId').value = '';
+      document.getElementById('fixedExpenseFormTitle').innerText = '새 고정비 등록';
+      document.getElementById('fixedName').value = '';
+      document.getElementById('fixedAmount').value = '';
+      document.getElementById('fixedDay').value = '25';
+      document.getElementById('fixedStart').value = currentMonthKey();
+      document.getElementById('fixedEnd').value = '';
+      if (state.members.length) document.getElementById('fixedPerson').value = state.members[0];
+    }
+    function renderFixedExpenseList() {
+      const host = document.getElementById('fixedExpenseList');
+      const items = state.fixedExpenses || [];
+      if (!items.length) { host.innerHTML = '<p class="text-sm text-slate-400 text-center py-3">등록된 고정비가 없습니다.</p>'; return; }
+      host.innerHTML = items.map(f => `<div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2"><div class="flex justify-between gap-2"><div class="min-w-0"><div class="font-bold">${escapeHtml(f.name)} · ${Number(f.amount).toLocaleString()}원</div><div class="text-xs text-slate-500">${escapeHtml(f.person)} · 매월 ${f.day}일 · ${f.start} ~ ${f.end || '기한 없음'}</div></div><div class="flex gap-2 shrink-0"><button type="button" onclick="editFixedExpense('${f.id}')" class="text-indigo-500 text-xs font-semibold">수정</button><button type="button" onclick="removeFixedExpense('${f.id}')" class="text-rose-500 text-xs font-semibold">삭제</button></div></div><button type="button" onclick="applyFixedException('${f.id}')" class="w-full py-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 text-xs font-bold">${state.selectedMonth}만 금액 예외 적용</button></div>`).join('');
+    }
+    async function saveFixedExpense() {
+      const id = document.getElementById('fixedExpenseId').value;
+      const person = document.getElementById('fixedPerson').value;
+      const name = document.getElementById('fixedName').value.trim();
+      const amount = Math.round(Number(document.getElementById('fixedAmount').value));
+      const day = Math.max(1, Math.min(31, Number(document.getElementById('fixedDay').value) || 1));
+      const start = document.getElementById('fixedStart').value;
+      const end = document.getElementById('fixedEnd').value;
+      if (!person || !name || !Number.isFinite(amount) || amount < 0 || !start || (end && end < start)) { alert('구성원, 항목명, 금액, 시작 월을 확인해주세요.'); return; }
+      const existing = (state.fixedExpenses || []).find(f => String(f.id) === String(id));
+      const overrides = { ...(existing?.overrides || {}) };
+      // 기본 금액/기간 수정은 선택한 달부터 적용하고, 그 이후의 월별 예외는 새 기본값과 충돌하지 않게 정리합니다.
+      if (id) Object.keys(overrides).forEach(k => { if (k >= state.selectedMonth) delete overrides[k]; });
+      const item = { id: id || `fx-${Date.now()}`, person, name, amount, day, start, end, overrides };
+      if (id) state.fixedExpenses = state.fixedExpenses.map(f => String(f.id) === String(id) ? item : f); else state.fixedExpenses.push(item);
+      // 시작월부터 현재월까지 월별 자동 내역을 생성하므로 과거 월 목록에도 빠지지 않습니다.
+      ensureFixedExpensesThroughCurrentMonth(true);
+      await saveState();
+      resetFixedExpenseForm();
+      renderFixedExpenseList();
+      renderMonthTabs();
+      renderUI();
+      alert('고정비가 저장되었고 해당 기간의 월별 내역에 반영되었습니다.');
+    }
+    function editFixedExpense(id) {
+      const f = state.fixedExpenses.find(x => String(x.id) === String(id)); if (!f) return;
+      document.getElementById('fixedExpenseId').value = f.id;
+      document.getElementById('fixedExpenseFormTitle').innerText = '고정비 수정 (변경사항은 이후 자동 등록분에 적용)';
+      document.getElementById('fixedPerson').value = f.person;
+      document.getElementById('fixedName').value = f.name;
+      document.getElementById('fixedAmount').value = f.amount;
+      document.getElementById('fixedDay').value = f.day;
+      document.getElementById('fixedStart').value = f.start;
+      document.getElementById('fixedEnd').value = f.end || '';
+      document.getElementById('fixedName').focus();
+    }
+    function removeFixedExpense(id) {
+      if (!confirm('이 고정비의 향후 자동 등록을 중단할까요? 이미 생성된 과거 내역은 유지됩니다.')) return;
+      state.fixedExpenses = state.fixedExpenses.filter(f => String(f.id) !== String(id));
+      saveState(); renderFixedExpenseList();
+    }
+    function applyFixedException(id) {
+      const f = state.fixedExpenses.find(x => String(x.id) === String(id)); if (!f) return;
+      const raw = prompt(`${state.selectedMonth} ${f.name}의 이번 달 금액을 입력하세요. 다음 달부터는 기본 금액 ${Number(f.amount).toLocaleString()}원이 적용됩니다.`, String(f.amount));
+      if (raw === null) return;
+      const amount = Number(raw);
+      if (!Number.isFinite(amount) || amount < 0) { alert('올바른 금액을 입력해주세요.'); return; }
+      f.overrides = f.overrides || {}; f.overrides[state.selectedMonth] = Math.round(amount);
+      ensureFixedExpensesForMonth(state.selectedMonth, true);
+      saveState(); renderFixedExpenseList(); renderUI();
+    }
+    function ensureFixedExpensesForMonth(key, refreshExisting = false, persist = true) {
+      if (!/^\d{4}-\d{2}$/.test(key)) return false;
+      let changed = false;
+      (state.fixedExpenses || []).forEach(f => {
+        if (key < f.start || (f.end && key > f.end)) return;
+        const [y, m] = key.split('-').map(Number);
+        const day = Math.min(Number(f.day) || 1, new Date(y, m, 0).getDate());
+        const date = `${key}-${String(day).padStart(2,'0')}`;
+        const id = `fixed-${f.id}-${key}`;
+        const amount = Number((f.overrides || {})[key] ?? f.amount);
+        const existing = state.transactions.find(t => String(t.id) === id);
+        if (existing) {
+          if (refreshExisting && Number(existing.amount) !== amount) {
+            existing.amount = amount;
+            existing.person = f.person;
+            existing.subcategory = '고정비';
+            existing.desc = f.name;
+            existing.date = date;
+            changed = true;
+          }
+          return;
+        }
+        state.transactions.unshift({ id, person: f.person, type: '지출', subcategory: '고정비', date, amount, desc: f.name, fixedExpenseId: f.id, generatedMonth: key });
+        changed = true;
+      });
+      if (changed && persist) saveState();
+      return changed;
+    }
+    function ensureFixedExpensesThroughCurrentMonth(refreshExisting = false) {
+      const current = currentMonthKey();
+      let changed = false;
+      (state.fixedExpenses || []).forEach(f => {
+        const start = f.start && f.start > '0000-00' ? f.start : current;
+        const end = f.end && f.end < current ? f.end : current;
+        if (start > end) return;
+        const [sy, sm] = start.split('-').map(Number);
+        const [ey, em] = end.split('-').map(Number);
+        let cursor = new Date(sy, sm - 1, 1);
+        const last = new Date(ey, em - 1, 1);
+        while (cursor <= last) {
+          const key = `${cursor.getFullYear()}-${String(cursor.getMonth()+1).padStart(2,'0')}`;
+          if (ensureFixedExpensesForMonth(key, refreshExisting, false)) changed = true;
+          cursor.setMonth(cursor.getMonth() + 1);
+        }
+      });
+      if (changed) saveState();
+      return changed;
+    }
+
+    function currentMonthKey() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    }
+
+    function monthKey(date) { return String(date || '').slice(0, 7); }
+    function monthLabel(key) {
+      const [y,m] = key.split('-');
+      return `${y}년 ${Number(m)}월`;
+    }
+    function totalsFor(list) {
+      const out = { inc: 0, exp: 0, sav: 0, count: list.length };
+      list.forEach(t => {
+        const amount = Number(t.amount) || 0;
+        if (t.type === '수입') out.inc += amount;
+        if (t.type === '지출') out.exp += amount;
+        if (t.type === '저축') out.sav += amount;
+      });
+      out.balance = out.inc - out.exp - out.sav;
+      return out;
+    }
+    function setMonth(key) {
+      state.selectedMonth = key;
+      ensureFixedExpensesForMonth(key);
+      renderMonthTabs();
+      renderUI();
+    }
+    function moveMonth(offset) {
+      const [year, month] = (state.selectedMonth || currentMonthKey()).split('-').map(Number);
+      const next = new Date(year, month - 1 + offset, 1);
+      const key = `${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}`;
+      const dated = state.transactions.map(t => monthKey(t.date)).filter(k => /^\d{4}-\d{2}$/.test(k));
+      const earliest = dated.length ? dated.sort()[0] : currentMonthKey();
+      if (key < earliest || key > currentMonthKey()) return;
+      setMonth(key);
+    }
+    function renderMonthTabs() {
+      const current = currentMonthKey();
+      const dated = state.transactions.map(t => monthKey(t.date)).filter(k => /^\d{4}-\d{2}$/.test(k));
+      const earliest = dated.length ? dated.sort()[0] : current;
+      if (!state.selectedMonth || state.selectedMonth < earliest || state.selectedMonth > current) state.selectedMonth = current;
+      const [year, month] = state.selectedMonth.split('-').map(Number);
+      document.getElementById('monthTabs').innerText = `${year}년 ${month}월`;
+      document.getElementById('monthPrevBtn').disabled = state.selectedMonth <= earliest;
+      document.getElementById('monthNextBtn').disabled = state.selectedMonth >= current;
+      renderMonthArchive();
+    }
+    function toggleMonthArchive() {
+      monthArchiveOpen = !monthArchiveOpen;
+      const panel = document.getElementById('monthArchivePanel');
+      const toggle = document.getElementById('monthListToggle');
+      panel.classList.toggle('hidden', !monthArchiveOpen);
+      toggle.setAttribute('aria-expanded', String(monthArchiveOpen));
+      if (monthArchiveOpen) renderMonthArchive();
+    }
+    function toggleArchiveYear(year) {
+      expandedArchiveYear = expandedArchiveYear === year ? null : year;
+      renderMonthArchive();
+    }
+    function chooseArchiveMonth(key) {
+      setMonth(key);
+      monthArchiveOpen = false;
+      document.getElementById('monthArchivePanel').classList.add('hidden');
+      document.getElementById('monthListToggle').setAttribute('aria-expanded', 'false');
+    }
+    function renderMonthArchive() {
+      const host = document.getElementById('monthArchiveYears');
+      if (!host) return;
+      const months = [...new Set(state.transactions.map(t => monthKey(t.date)).filter(k => /^\\d{4}-\\d{2}$/.test(k)))].sort().reverse();
+      if (!months.length) {
+        host.innerHTML = '<div class="text-sm text-slate-500 dark:text-slate-400 py-3 text-center">아직 입력된 내역이 없습니다.</div>';
+        return;
+      }
+      const years = [...new Set(months.map(k => k.slice(0,4)))];
+      host.innerHTML = years.map(year => {
+        const yearMonths = months.filter(k => k.startsWith(year + '-'));
+        const opened = expandedArchiveYear === year;
+        return `<div>
+          <button type="button" class="month-archive-year" onclick="toggleArchiveYear('${year}')" aria-expanded="${opened}">
+            <span>${year}년</span><span class="text-sm opacity-70">${yearMonths.length}개월 <i class="fa-solid fa-chevron-${opened ? 'up' : 'down'} ml-1"></i></span>
+          </button>
+          ${opened ? `<div class="month-archive-months">${yearMonths.map(key => {
+            const month = Number(key.slice(5,7));
+            return `<button type="button" class="month-archive-month ${state.selectedMonth === key ? 'active' : ''}" onclick="chooseArchiveMonth('${key}')">${month}월</button>`;
+          }).join('')}</div>` : ''}
+        </div>`;
+      }).join('');
+    }
+    function toggleSummaryAmount(button) {
+      const expanded = button.dataset.expanded === 'true';
+      button.textContent = expanded ? button.dataset.compact : button.dataset.full;
+      button.dataset.expanded = expanded ? 'false' : 'true';
+      button.title = expanded ? '눌러서 전체 금액 보기' : '눌러서 축약 금액 보기';
+      button.setAttribute('aria-label', expanded ? '축약 금액으로 보기' : '전체 금액으로 보기');
+    }
+
+    function renderPeriodSummary(memberFiltered) {
+      // 선택한 월을 기준으로 비교합니다. 시스템의 실제 이번 달과 혼동하지 않습니다.
+      const selected = state.selectedMonth || currentMonthKey();
+      const [year, month] = selected.split('-').map(Number);
+      const prevDate = new Date(year, month - 2, 1);
+      const prev = `${prevDate.getFullYear()}-${String(prevDate.getMonth()+1).padStart(2,'0')}`;
+
+      const monthNumbers = key => {
+        const [y, m] = key.split('-').map(Number);
+        return y * 12 + (m - 1);
+      };
+      const datedMonths = memberFiltered.map(t => monthKey(t.date)).filter(k => /^\d{4}-\d{2}$/.test(k));
+      const firstMonth = datedMonths.length ? datedMonths.reduce((a, b) => monthNumbers(a) < monthNumbers(b) ? a : b) : selected;
+      const monthsBeforeSelected = Math.max(0, monthNumbers(selected) - monthNumbers(firstMonth));
+      const throughPrevious = memberFiltered.filter(t => {
+        const key = monthKey(t.date);
+        return key && key <= prev;
+      });
+      const cumulative = totalsFor(throughPrevious);
+      const averageDivisor = Math.max(1, monthsBeforeSelected);
+      const average = {
+        inc: cumulative.inc / averageDivisor,
+        exp: cumulative.exp / averageDivisor,
+        sav: cumulative.sav / averageDivisor
+      };
+      const currentTotals = totalsFor(memberFiltered.filter(t => monthKey(t.date) === selected));
+      const previousTotals = totalsFor(memberFiltered.filter(t => monthKey(t.date) === prev));
+      const fmt = n => `${Math.round(Math.abs(n)).toLocaleString('ko-KR')}원`;
+      const signedFmt = n => `${n > 0 ? '+' : n < 0 ? '-' : ''}${fmt(n)}`;
+      const compactFmt = n => {
+        const value = Math.round(Math.abs(n));
+        const sign = n < 0 ? '-' : '';
+        if (value >= 100000000) {
+          const eok = Math.floor(value / 100000000);
+          const man = Math.floor((value % 100000000) / 10000);
+          return `${sign}${eok.toLocaleString('ko-KR')}억${man ? ` ${man.toLocaleString('ko-KR')}만` : ''} 원`;
+        }
+        if (value >= 10000) return `${sign}${(value / 10000).toFixed(1).replace(/\.0$/, '')}만 원`;
+        return `${sign}${fmt(n)}`;
+      };
+      const amountButton = (n, color, signed = false) => {
+        const compact = signed ? `${n > 0 ? '+' : n < 0 ? '-' : ''}${compactFmt(Math.abs(n))}` : compactFmt(n);
+        const full = signed ? signedFmt(n) : fmt(n);
+        return `<button type="button" onclick="toggleSummaryAmount(this)" data-compact="${compact}" data-full="${full}" data-expanded="false" title="눌러서 전체 금액 보기" aria-label="전체 금액 보기" class="summary-amount ${color} font-bold text-right tabular-nums whitespace-nowrap leading-tight">${compact}</button>`;
+      };
+      const amountRows = data => {
+        const rows = [['수입',data.inc,'text-emerald-600 dark:text-emerald-400'],['지출',data.exp,'text-rose-600 dark:text-rose-400'],['저축',data.sav,'text-indigo-600 dark:text-indigo-400']];
+        return `<div class="space-y-2.5">${rows.map(([name,value,color]) => `<div class="flex items-center justify-between gap-3 min-w-0"><span class="${color} shrink-0 font-medium">${name}</span>${amountButton(value,color)}</div>`).join('')}</div>`;
+      };
+      const comparisonRows = (base, now) => {
+        const rows = [['수입',base.inc,now.inc,'text-emerald-600 dark:text-emerald-400'],['지출',base.exp,now.exp,'text-rose-600 dark:text-rose-400'],['저축',base.sav,now.sav,'text-indigo-600 dark:text-indigo-400']];
+        return `<div class="space-y-2.5">${rows.map(([name,a,b,color]) => { const diff=b-a; const pct=a ? (diff/Math.abs(a))*100 : (b ? 100 : 0); const sign=diff>0?'+':''; return `<div class="flex items-center justify-between gap-3 min-w-0"><span class="${color} shrink-0 font-medium">${name}</span><div class="flex flex-col items-end min-w-0"><div class="max-w-full">${amountButton(diff,color,true)}</div><span class="text-[10px] ${diff>0?'text-indigo-500':diff<0?'text-rose-500':'text-slate-400'} whitespace-nowrap">${sign}${pct.toFixed(1)}%</span></div></div>`; }).join('')}</div>`;
+      };
+      const panel = (label, content) => `<div class="rounded-xl bg-slate-50 dark:bg-slate-700/40 p-3 sm:p-4"><div class="font-bold mb-3">${label}</div>${content}</div>`;
+      document.getElementById('periodComparisons').innerHTML =
+        panel('이번달', amountRows(currentTotals)) +
+        panel('전달 대비', comparisonRows(previousTotals, currentTotals)) +
+        panel('전체 누적 평균 대비', comparisonRows(average, currentTotals));
+    }
+
+    function renderUI() {
+      renderMonthTabs();
+      let filtered = state.transactions.filter(t => monthKey(t.date) === state.selectedMonth);
+      if (state.selectedMemberFilter !== 'ALL') {
+        filtered = filtered.filter(t => t.person === state.selectedMemberFilter);
+      }
+
+      let memberFiltered = state.transactions;
+      if (state.selectedMemberFilter !== 'ALL') memberFiltered = memberFiltered.filter(t => t.person === state.selectedMemberFilter);
+      renderPeriodSummary(memberFiltered);
+
+      let inc = 0, exp = 0, sav = 0;
+      filtered.forEach(t => {
+        if (t.type === '수입') inc += t.amount;
+        if (t.type === '지출') exp += t.amount;
+        if (t.type === '저축') sav += t.amount;
+      });
+
+      renderDashboard(inc, exp, sav);
+
+      const txContainer = document.getElementById('txList');
+      if (filtered.length === 0) {
+        txContainer.innerHTML = `<p class="text-center text-slate-400 py-8 text-sm">등록된 거래 내역이 없습니다.</p>`;
+      } else {
+        txContainer.innerHTML = filtered.map(t => {
+          const colorClass = t.type === '지출' ? 'text-rose-600' : t.type === '수입' ? 'text-emerald-600' : 'text-indigo-600';
+          const prefix = t.type === '지출' ? '-' : '+';
+          return `
+            <div class="bg-white dark:bg-slate-800 p-3.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between shadow-sm">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500">${t.person}</span>
+                  <span class="font-bold text-sm">${t.subcategory}</span>
+                </div>
+                <div class="text-xs text-slate-400 mt-1">${t.date} · ${t.desc}</div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="tx-amount font-bold ${colorClass}">
+                  ${prefix}${t.amount.toLocaleString()}원
+                </div>
+                <button type="button" onclick="deleteTx(${JSON.stringify(t.id)})" class="text-slate-400 hover:text-rose-500 p-1 text-xs transition-colors">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      renderStats(filtered, inc, exp, sav);
+    }
+
+    // 금액을 만원 단위로 반올림해 한국식 큰 단위로 표시합니다.
+    function formatRoundedManwon(amount) {
+      const sign = amount < 0 ? '-' : '';
+      const manwon = Math.round(Math.abs(Number(amount) || 0) / 10000);
+      const eok = Math.floor(manwon / 10000);
+      const remainder = manwon % 10000;
+      if (eok > 0) return `${sign}${eok.toLocaleString()}억${remainder ? ` ${remainder.toLocaleString()}만원` : '원'}`;
+      return `${sign}${manwon.toLocaleString()}만원`;
+    }
+
+    function renderDashboard(inc, exp, sav) {
+      const balance = inc - (exp + sav);
+      const balanceText = document.getElementById('dashBalanceSum');
+      balanceText.innerText = formatRoundedManwon(balance);
+      
+      if (balance < 0) {
+        balanceText.className = "text-base sm:text-lg font-bold text-rose-600 dark:text-rose-400";
+      } else {
+        balanceText.className = "text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400";
+      }
+
+      const expPct = inc > 0 ? Math.round((exp / inc) * 100) : 0;
+      const savPct = inc > 0 ? Math.round((sav / inc) * 100) : 0;
+
+      document.getElementById('dashInc').innerText = formatRoundedManwon(inc);
+      document.getElementById('dashExp').innerText = `${formatRoundedManwon(exp)} (${expPct}%)`;
+      document.getElementById('dashSav').innerText = `${formatRoundedManwon(sav)} (${savPct}%)`;
+
+      const segmentsGroup = document.getElementById('chartSegments');
+      if (inc <= 0) {
+        segmentsGroup.innerHTML = `<circle cx="18" cy="18" r="15.9155" fill="none" stroke="#cbd5e1" stroke-width="4" />`;
+        return;
+      }
+
+      const radius = 15.9155;
+      const circumference = 2 * Math.PI * radius;
+      let cumulativePercent = 0;
+
+      const data = [
+        { label: '지출', val: exp, color: '#f43f5e' },
+        { label: '저축', val: sav, color: '#6366f1' },
+        { label: '잔액', val: Math.max(0, balance), color: '#10b981' }
+      ];
+
+      let svgHtml = '';
+      data.forEach(item => {
+        if (item.val <= 0) return;
+        const pct = item.val / inc;
+        const strokeDasharray = `${pct * circumference} ${circumference}`;
+        const strokeDashoffset = -1 * (cumulativePercent * circumference);
+        svgHtml += `<circle cx="18" cy="18" r="${radius}" fill="none" stroke="${item.color}" stroke-width="4" stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}" />`;
+        cumulativePercent += pct;
+      });
+      segmentsGroup.innerHTML = svgHtml;
+    }
+
+    function renderStats(list, totalInc, totalExp, totalSav) {
+      const balance = totalInc - (totalExp + totalSav);
+      const expPct = totalInc > 0 ? Math.round((totalExp / totalInc) * 100) : 0;
+      const savPct = totalInc > 0 ? Math.round((totalSav / totalInc) * 100) : 0;
+      const balPct = totalInc > 0 ? Math.round((balance / totalInc) * 100) : 0;
+
+      document.getElementById('statSummaryIncome').innerText = formatRoundedManwon(totalInc);
+      document.getElementById('statSummaryExpense').innerText = formatRoundedManwon(totalExp);
+      document.getElementById('statSummaryExpensePct').innerText = `(${expPct}%)`;
+      document.getElementById('statSummarySaving').innerText = formatRoundedManwon(totalSav);
+      document.getElementById('statSummarySavingPct').innerText = `(${savPct}%)`;
+      document.getElementById('statSummaryBalance').innerText = formatRoundedManwon(balance);
+      document.getElementById('statSummaryBalancePct').innerText = `(${balPct}%)`;
+
+      const container = document.getElementById('statsBreakdown');
+      const types = ['수입', '지출', '저축'];
+      let html = '';
+
+      types.forEach(type => {
+        const typeList = list.filter(t => t.type === type);
+        const typeTotal = typeList.reduce((acc, c) => acc + c.amount, 0);
+        if (typeTotal === 0) return;
+
+        const subGroup = {};
+        typeList.forEach(t => {
+          if (!subGroup[t.subcategory]) {
+            subGroup[t.subcategory] = { total: 0, descs: {}, txs: [] };
+          }
+          subGroup[t.subcategory].total += t.amount;
+          subGroup[t.subcategory].txs.push(t);
+
+          if (!subGroup[t.subcategory].descs[t.desc]) {
+            subGroup[t.subcategory].descs[t.desc] = { total: 0, txs: [] };
+          }
+          subGroup[t.subcategory].descs[t.desc].total += t.amount;
+          subGroup[t.subcategory].descs[t.desc].txs.push(t);
+        });
+
+        const typeColorClass = type === '지출' ? 'text-rose-600' : type === '수입' ? 'text-emerald-600' : 'text-indigo-600';
+        const typeBgClass = type === '지출' ? 'bg-rose-500' : type === '수입' ? 'bg-emerald-500' : 'bg-indigo-500';
+
+        html += `
+          <div class="space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
+              <span class="font-bold text-base flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full ${typeBgClass}"></span>
+                ${type} 총계
+              </span>
+              <span class="font-bold text-base ${typeColorClass}">${typeTotal.toLocaleString()}원</span>
+            </div>
+
+            <div class="space-y-3 pl-1">
+              ${Object.keys(subGroup).map((sub, sIdx) => {
+                const subObj = subGroup[sub];
+                const subPctOfTotal = Math.round((subObj.total / typeTotal) * 100);
+                const subAccordionId = `acc_${type}_sub_${sIdx}`;
+
+                return `
+                  <div class="bg-slate-50 dark:bg-slate-700/40 rounded-xl overflow-hidden border border-slate-200/50 dark:border-slate-600/50">
+                    <div onclick="toggleAccordion('${subAccordionId}')" class="p-3 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors">
+                      <div class="flex justify-between items-center font-semibold text-sm mb-1">
+                        <span class="flex items-center gap-1.5">
+                          <i class="fa-solid fa-chevron-right text-xs text-slate-400 transition-transform" id="${subAccordionId}_icon"></i>
+                          ${sub}
+                          <span class="text-xs text-slate-400 font-normal">(${type}의 ${subPctOfTotal}%)</span>
+                        </span>
+                        <span>${subObj.total.toLocaleString()}원</span>
+                      </div>
+                      <div class="w-full bg-slate-200 dark:bg-slate-600 h-1.5 rounded-full overflow-hidden">
+                        <div class="${typeBgClass} h-full" style="width: ${subPctOfTotal}%"></div>
+                      </div>
+                    </div>
+
+                    <div id="${subAccordionId}" class="hidden bg-white dark:bg-slate-800/80 p-3 border-t border-slate-200/50 dark:border-slate-700 space-y-3 text-xs">
+                      
+                      <div class="space-y-2">
+                        <div class="font-semibold text-slate-500 mb-1">📌 내용별 구성비</div>
+                        ${Object.keys(subObj.descs).map((desc, dIdx) => {
+                          const descObj = subObj.descs[desc];
+                          const descPctOfSub = Math.round((descObj.total / subObj.total) * 100);
+                          const descAccordionId = `${subAccordionId}_desc_${dIdx}`;
+
+                          return `
+                            <div class="bg-slate-50 dark:bg-slate-700/30 rounded-lg p-2 border border-slate-100 dark:border-slate-700">
+                              <div onclick="toggleAccordion('${descAccordionId}')" class="flex justify-between items-center cursor-pointer font-medium">
+                                <span class="flex items-center gap-1">
+                                  <i class="fa-solid fa-caret-right text-slate-400" id="${descAccordionId}_icon"></i>
+                                  ${desc}
+                                  <span class="text-[10px] text-slate-400">(${sub}의 ${descPctOfSub}%)</span>
+                                </span>
+                                <span class="font-bold text-slate-700 dark:text-slate-200">${descObj.total.toLocaleString()}원</span>
+                              </div>
+
+                              <div id="${descAccordionId}" class="hidden mt-2 pt-2 border-t border-slate-200 dark:border-slate-600 space-y-1.5 pl-2">
+                                ${descObj.txs.map(tx => `
+                                  <div class="flex justify-between items-center text-[11px] text-slate-500 dark:text-slate-400">
+                                    <span>${tx.date} · <strong class="text-slate-700 dark:text-slate-300">${tx.person}</strong></span>
+                                    <span class="font-semibold">${tx.amount.toLocaleString()}원</span>
+                                  </div>
+                                `).join('')}
+                              </div>
+                            </div>
+                          `;
+                        }).join('')}
+                      </div>
+
+                      <div class="pt-2 border-t border-slate-100 dark:border-slate-700">
+                        <div class="font-semibold text-slate-500 mb-1.5">📋 '${sub}' 거래 내역 목록</div>
+                        <div class="space-y-1">
+                          ${subObj.txs.map(tx => `
+                            <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-700/50 p-2 rounded-lg text-[11px]">
+                              <div>
+                                <span class="font-semibold text-slate-700 dark:text-slate-200">${tx.date}</span>
+                                <span class="text-slate-400 mx-1">|</span>
+                                <span class="text-indigo-600 dark:text-indigo-400 font-medium">${tx.person}</span>
+                                <span class="text-slate-400 mx-1">|</span>
+                                <span class="text-slate-600 dark:text-slate-300">${tx.desc}</span>
+                              </div>
+                              <span class="font-bold text-slate-800 dark:text-slate-100">${tx.amount.toLocaleString()}원</span>
+                            </div>
+                          `).join('')}
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html || `<p class="text-center text-slate-400 py-4 text-sm">통계 데이터가 없습니다.</p>`;
+    }
+
+    function toggleAccordion(id) {
+      const target = document.getElementById(id);
+      const icon = document.getElementById(`${id}_icon`);
+      if (target) {
+        target.classList.toggle('hidden');
+        if (icon) {
+          icon.classList.toggle('rotate-90');
+        }
+      }
+    }
+
+    function switchEditCategory(cat) {
+      state.editCategory = cat;
+      const editColors = {
+        '수입': 'bg-emerald-50 text-emerald-600 border-emerald-500 dark:bg-emerald-950/30 dark:text-emerald-400',
+        '지출': 'bg-rose-50 text-rose-600 border-rose-500 dark:bg-rose-950/30 dark:text-rose-400',
+        '저축': 'bg-indigo-50 text-indigo-600 border-indigo-500 dark:bg-indigo-950/30 dark:text-indigo-400'
+      };
+      ['수입', '지출', '저축'].forEach(c => {
+        const btn = document.getElementById(`editType${c === '수입' ? 'Income' : c === '지출' ? 'Expense' : 'Saving'}`);
+        btn.className = c === cat
+          ? `py-2 rounded-lg text-xs font-bold border ${editColors[c]}`
+          : 'py-2 rounded-lg text-xs font-bold text-slate-500 border border-slate-200 dark:text-slate-400 dark:border-slate-700';
+      });
+      renderEditManager();
+    }
+
+    function renderEditManager() {
+      const subcatContainer = document.getElementById('subcatManageList');
+      const currentSubs = state.customSubcats[state.editCategory] || [];
+      subcatContainer.innerHTML = currentSubs.map((s, idx) => `
+        <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-700/40 px-3.5 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+          <span class="text-sm font-medium">${s}</span>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="editSubcat('${state.editCategory}', ${idx})" class="text-xs px-2 py-1 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300 rounded-lg font-semibold hover:bg-indigo-100">수정</button>
+            <button type="button" onclick="deleteSubcat('${state.editCategory}', ${idx})" class="text-xs px-2 py-1 bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300 rounded-lg font-semibold hover:bg-rose-100">삭제</button>
+          </div>
+        </div>
+      `).join('');
+
+      const editSubSelect = document.getElementById('editSubcatSelect');
+      editSubSelect.innerHTML = currentSubs.map(s => `<option value="${s}">${state.editCategory} > ${s}</option>`).join('');
+
+      const selectedSub = editSubSelect.value;
+      const descContainer = document.getElementById('descManageList');
+      if (!selectedSub) {
+        descContainer.innerHTML = `<p class="text-xs text-slate-400 py-2">등록된 세부항목이 없습니다.</p>`;
+        return;
+      }
+
+      const descKey = `${state.editCategory}_${selectedSub}`;
+      const currentDescs = state.customDescs[descKey] || ['내용없음'];
+      descContainer.innerHTML = currentDescs.map((d, idx) => `
+        <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-700/40 px-3.5 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+          <span class="text-sm font-medium">${d}</span>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="editDesc('${descKey}', ${idx})" class="text-xs px-2 py-1 bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300 rounded-lg font-semibold hover:bg-indigo-100">수정</button>
+            <button type="button" onclick="deleteDesc('${descKey}', ${idx})" class="text-xs px-2 py-1 bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300 rounded-lg font-semibold hover:bg-rose-100">삭제</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addSubcategory() {
+      const val = document.getElementById('newSubcatInput').value.trim();
+      if (!val) return;
+      if (!state.customSubcats[state.editCategory].includes(val)) {
+        state.customSubcats[state.editCategory].push(val);
+        document.getElementById('newSubcatInput').value = '';
+        saveState();
+        renderEditManager();
+      }
+    }
+
+    function editSubcat(cat, idx) {
+      const oldName = state.customSubcats[cat][idx];
+      const newName = prompt('변경할 세부항목 이름을 입력하세요:', oldName);
+      if (newName && newName.trim() && newName.trim() !== oldName) {
+        state.customSubcats[cat][idx] = newName.trim();
+        const oldKey = `${cat}_${oldName}`;
+        const newKey = `${cat}_${newName.trim()}`;
+        if (state.customDescs[oldKey]) {
+          state.customDescs[newKey] = state.customDescs[oldKey];
+          delete state.customDescs[oldKey];
+        }
+        saveState();
+        renderEditManager();
+      }
+    }
+
+    function deleteSubcat(cat, idx) {
+      if (confirm(`'${state.customSubcats[cat][idx]}' 세부항목을 삭제하시겠습니까?`)) {
+        const name = state.customSubcats[cat][idx];
+        state.customSubcats[cat].splice(idx, 1);
+        delete state.customDescs[`${cat}_${name}`];
+        saveState();
+        renderEditManager();
+      }
+    }
+
+    function addDescription() {
+      const selectedSub = document.getElementById('editSubcatSelect').value;
+      if (!selectedSub) {
+        alert('세부항목을 먼저 추가해주세요.');
+        return;
+      }
+      const val = document.getElementById('newDescInput').value.trim();
+      if (!val) return;
+
+      const descKey = `${state.editCategory}_${selectedSub}`;
+      if (!state.customDescs[descKey]) state.customDescs[descKey] = ['내용없음'];
+      if (!state.customDescs[descKey].includes(val)) {
+        state.customDescs[descKey].push(val);
+        document.getElementById('newDescInput').value = '';
+        saveState();
+        renderEditManager();
+      }
+    }
+
+    function editDesc(descKey, idx) {
+      const oldName = state.customDescs[descKey][idx];
+      const newName = prompt('변경할 내용 이름을 입력하세요:', oldName);
+      if (newName && newName.trim() && newName.trim() !== oldName) {
+        state.customDescs[descKey][idx] = newName.trim();
+        saveState();
+        renderEditManager();
+      }
+    }
+
+    function deleteDesc(descKey, idx) {
+      if (confirm(`'${state.customDescs[descKey][idx]}' 내용을 삭제하시겠습니까?`)) {
+        state.customDescs[descKey].splice(idx, 1);
+        saveState();
+        renderEditManager();
+      }
+    }
+
+    function switchTab(tab) {
+      const tabs = ['dashboard', 'list', 'stats', 'edit'];
+      tabs.forEach(t => {
+        document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.add('hidden');
+        document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`).className = "flex-1 py-3 text-center border-b-2 border-transparent text-slate-400 font-semibold";
+      });
+      document.getElementById(`tabContent${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.remove('hidden');
+      document.getElementById(`tabBtn${tab.charAt(0).toUpperCase() + tab.slice(1)}`).className = "flex-1 py-3 text-center border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400 font-semibold";
+    }
+
+    // 이 기기에 유효한 로그인 토큰이 있으면 로그인 화면을 거치지 않고 자동 접속합니다.
+    if (authToken) {
+      const savedAccountName = localStorage.getItem('gagyeboo_account_name') || '';
+      currentAccount = savedAccountName;
+      document.getElementById('appHeaderTitle').innerText = `${savedAccountName || '내'} 가계부`;
+      loadAccountData(savedAccountName);
+    }
+  </script>
+</body>
+</html>
