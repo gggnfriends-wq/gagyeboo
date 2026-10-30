@@ -1334,39 +1334,9 @@
     }
 
     function renderDashboard(inc, exp, sav) {
+      // 대시보드의 고정 내역 요약만 갱신합니다.
+      // 삭제된 자산 사용 현황 UI 요소를 참조하지 않도록 합니다.
       renderFixedMonthlySummary();
-      const balance = inc - (exp + sav);
-      const balanceText = document.getElementById('dashBalanceSum');
-      balanceText.innerText = `${Math.round(balance).toLocaleString('ko-KR')}원`;
-      balanceText.className = "text-base sm:text-lg font-bold text-amber-500 dark:text-amber-400";
-
-      const expPct = inc > 0 ? Math.round((exp / inc) * 100) : 0;
-      const savPct = inc > 0 ? Math.round((sav / inc) * 100) : 0;
-
-      document.getElementById('dashInc').innerText = formatRoundedManwon(inc);
-      document.getElementById('dashExp').innerText = `${formatRoundedManwon(exp)} (${expPct}%)`;
-      document.getElementById('dashSav').innerText = `${formatRoundedManwon(sav)} (${savPct}%)`;
-
-      // 12시 방향부터 지출(빨강) → 저축(보라) → 남은 수입(초록) 순서로 원을 나눕니다.
-      const segmentsGroup = document.getElementById('chartSegments');
-      const radius = 15.9155;
-      const circumference = 2 * Math.PI * radius;
-      if (inc <= 0) {
-        segmentsGroup.innerHTML = '';
-        return;
-      }
-      const expenseRatio = Math.max(0, Math.min(1, exp / inc));
-      const savingRatio = Math.max(0, Math.min(1 - expenseRatio, sav / inc));
-      const expenseLength = expenseRatio * circumference;
-      const savingLength = savingRatio * circumference;
-      let svgHtml = '';
-      if (expenseLength > 0) {
-        svgHtml += `<circle cx="18" cy="18" r="${radius}" fill="none" stroke="#f43f5e" stroke-width="5" stroke-dasharray="${expenseLength} ${circumference}" stroke-dashoffset="0" />`;
-      }
-      if (savingLength > 0) {
-        svgHtml += `<circle cx="18" cy="18" r="${radius}" fill="none" stroke="#6366f1" stroke-width="5" stroke-dasharray="${savingLength} ${circumference}" stroke-dashoffset="-${expenseLength}" />`;
-      }
-      segmentsGroup.innerHTML = svgHtml;
     }
 
     function renderStats(list, totalInc, totalExp, totalSav) {
