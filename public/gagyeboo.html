@@ -167,6 +167,28 @@
     -webkit-appearance: none;
     appearance: none;
   }
+
+  /* 사이트 전역 최소 글씨 크기: 기간별 요약 제목(16px)을 기준으로 작은 글씨를 보정 */
+  body :not(i):not(svg):not(path):not(circle):not(rect):not(line):not(polyline):not(polygon):not(stop):not(use) {
+    font-size: max(16px, 1em) !important;
+  }
+  /* 아이콘은 원래 크기를 유지 */
+  i, .fa, [class^="fa-"], [class*=" fa-"] { font-size: revert !important; }
+  /* 모바일 탭은 글씨가 커져도 겹치지 않게 줄바꿈 허용 */
+  #tabBtnDashboard, #tabBtnList, #tabBtnStats, #tabBtnEdit {
+    min-width: 0; white-space: normal; overflow-wrap: anywhere;
+    line-height: 1.25; padding-left: 3px; padding-right: 3px;
+  }
+  /* 작은 화면의 금액·요약 영역은 줄바꿈으로 겹침 방지 */
+  #txList, #periodComparisons, #statIncomeBar + div,
+  #statIncomeBar + div > div { min-width: 0; }
+  #txList *, #periodComparisons *, #statSummaryIncome,
+  #statSummaryExpense, #statSummarySaving, #statSummaryBalance {
+    overflow-wrap: anywhere; word-break: normal;
+  }
+  @media (max-width: 380px) {
+    #tabBtnDashboard, #tabBtnList, #tabBtnStats, #tabBtnEdit { font-size: 16px !important; }
+  }
 </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
@@ -264,7 +286,7 @@
 
       <!-- 조회 대상 필터 -->
       <section class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700/60">
-        <div class="flex items-center justify-between mb-2"><div class="text-xs font-semibold text-slate-400 dark:text-slate-400">조회 대상</div><button type="button" onclick="openMemberManager()" class="text-xs font-bold text-indigo-600 dark:text-indigo-300">등록 / 편집 / 삭제</button></div>
+        <div class="flex items-center justify-between mb-2"><div class="text-sm font-semibold text-slate-500 dark:text-slate-400">조회 대상</div><button type="button" onclick="openMemberManager()" class="text-xs font-bold text-indigo-600 dark:text-indigo-300">등록 / 편집 / 삭제</button></div>
         <div id="memberFilterList" class="flex flex-wrap gap-2"></div>
       </section>
 
@@ -295,16 +317,16 @@
       <!-- [탭 1] 대시보드 -->
       <section id="tabContentDashboard" class="space-y-6">
         <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-6 text-center">
-          <h3 class="text-base font-bold text-slate-700 dark:text-slate-200">수입 대비 자산 사용 현황</h3>
+          <h3 class="text-base sm:text-lg font-bold text-slate-700 dark:text-slate-200">수입 대비 자산 사용 현황</h3>
           
-          <div class="relative w-48 h-48 mx-auto flex items-center justify-center">
+          <div class="relative w-40 h-40 mx-auto flex items-center justify-center">
             <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-              <path id="chartRing" class="text-slate-100 dark:text-slate-700" stroke-width="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path id="chartRing" stroke-width="5" stroke="#10b981" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
               <g id="chartSegments"></g>
             </svg>
             <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span class="text-xs text-slate-400">수입 대비 남은 잔액</span>
-              <span id="dashBalanceSum" class="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400">0원</span>
+              <span class="text-xs text-slate-400">남은 잔액</span>
+              <span id="dashBalanceSum" class="text-base sm:text-lg font-bold text-amber-500 dark:text-amber-400">0원</span>
             </div>
           </div>
 
@@ -324,7 +346,7 @@
           </div>
         </div>
         <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-3">
-          <div class="flex items-center justify-between"><h3 class="text-sm font-bold">이번 달 고정 내역</h3><span class="text-[11px] text-slate-400">금액을 누르면 상세 내역</span></div>
+          <div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-bold">이번 달 고정 내역</h3><span class="text-[11px] text-slate-400">금액을 누르면 상세 내역</span></div>
           <div class="grid grid-cols-3 gap-2 text-center">
             <div class="rounded-xl bg-emerald-50 dark:bg-emerald-950/20 p-3"><div class="text-xs font-semibold text-emerald-600 mb-1">수입</div><button type="button" id="fixedMonthlyIncome" onclick="openFixedMonthlyDetails('수입')" class="font-bold text-sm text-emerald-700 dark:text-emerald-300 underline underline-offset-2">0원</button></div>
             <div class="rounded-xl bg-rose-50 dark:bg-rose-950/20 p-3"><div class="text-xs font-semibold text-rose-600 mb-1">지출</div><button type="button" id="fixedMonthlyExpense" onclick="openFixedMonthlyDetails('지출')" class="font-bold text-sm text-rose-700 dark:text-rose-300 underline underline-offset-2">0원</button></div>
@@ -333,7 +355,8 @@
         </div>
         <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-3">
           <h3 class="text-base sm:text-lg font-bold">기간별 수입·지출·저축 요약</h3>
-          <div id="periodComparisons" class="space-y-2 text-xs"></div>
+          <div id="periodComparisons" class="space-y-2 text-base sm:text-lg"></div>
+          <style>#periodComparisons, #periodComparisons * { font-size: inherit !important; }</style>
         </div>
 
       </section>
@@ -352,31 +375,22 @@
       <!-- [탭 3] 통계 분석 -->
       <section id="tabContentStats" class="space-y-6 hidden">
         <!-- 1. 수입 기준 종합 요약 -->
-        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-3">
-          <h3 class="text-base font-bold flex items-center gap-2 text-slate-800 dark:text-slate-100">
-            <i class="fa-solid fa-chart-pie text-indigo-500"></i> 수입 기준 전체 요약
-          </h3>
-          <div class="grid grid-cols-4 gap-2 text-center text-xs">
-            <div class="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/20">
-              <span class="text-slate-500 dark:text-slate-400 block mb-1">총 수입</span>
-              <span id="statSummaryIncome" class="font-bold text-emerald-600 dark:text-emerald-400 block">0원</span>
-              <span class="text-[10px] text-slate-400">(100%)</span>
-            </div>
-            <div class="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/20">
-              <span class="text-slate-500 dark:text-slate-400 block mb-1">총 지출</span>
-              <span id="statSummaryExpense" class="font-bold text-rose-600 block">0원</span>
-              <span id="statSummaryExpensePct" class="text-[10px] font-semibold text-rose-500">(0%)</span>
-            </div>
-            <div class="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/20">
-              <span class="text-slate-500 dark:text-slate-400 block mb-1">총 저축</span>
-              <span id="statSummarySaving" class="font-bold text-indigo-600 block">0원</span>
-              <span id="statSummarySavingPct" class="text-[10px] font-semibold text-indigo-500">(0%)</span>
-            </div>
-            <div class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/20">
-              <span class="text-slate-500 dark:text-slate-400 block mb-1">남은 잔액</span>
-              <span id="statSummaryBalance" class="font-bold text-amber-600 block">0원</span>
-              <span id="statSummaryBalancePct" class="text-[10px] font-semibold text-amber-500">(0%)</span>
-            </div>
+        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-4">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <h3 class="text-lg sm:text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-slate-100">
+              <i class="fa-solid fa-chart-pie text-indigo-500"></i> 수입기준 전체요약
+            </h3>
+            <div class="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400">총 수입 <span id="statSummaryIncome">0만원</span></div>
+          </div>
+          <div id="statIncomeBar" class="flex w-full h-8 sm:h-10 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-700" role="img" aria-label="수입 기준 지출, 저축, 남은 잔액 비율 그래프">
+            <div id="statExpenseBar" class="h-full bg-rose-500 transition-all" style="width:0%"></div>
+            <div id="statSavingBar" class="h-full bg-indigo-500 transition-all" style="width:0%"></div>
+            <div id="statBalanceBar" class="h-full bg-emerald-500 transition-all" style="width:0%"></div>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-sm sm:text-base text-center">
+            <div class="rounded-xl bg-rose-50 dark:bg-rose-950/20 p-3"><div class="font-semibold text-rose-600 mb-1">총 지출</div><div id="statSummaryExpense" class="font-bold text-rose-700 dark:text-rose-300">0만원</div><div id="statSummaryExpensePct" class="text-xs sm:text-sm text-rose-500">0%</div></div>
+            <div class="rounded-xl bg-indigo-50 dark:bg-indigo-950/20 p-3"><div class="font-semibold text-indigo-600 mb-1">총 저축</div><div id="statSummarySaving" class="font-bold text-indigo-700 dark:text-indigo-300">0만원</div><div id="statSummarySavingPct" class="text-xs sm:text-sm text-indigo-500">0%</div></div>
+            <div class="rounded-xl bg-emerald-50 dark:bg-emerald-950/20 p-3"><div class="font-semibold text-emerald-600 mb-1">남은 잔액</div><div id="statSummaryBalance" class="font-bold text-emerald-700 dark:text-emerald-300">0만원</div><div id="statSummaryBalancePct" class="text-xs sm:text-sm text-emerald-500">0%</div></div>
           </div>
         </div>
 
@@ -745,20 +759,20 @@
     function renderFilter() {
       const container = document.getElementById('memberFilterList');
       let html = `
-        <button type="button" onclick="setFilter('ALL')" class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+        <button type="button" onclick="setFilter('ALL')" class="px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all ${
           state.selectedMemberFilter === 'ALL' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
         }">전체(모두)</button>
       `;
       state.members.forEach(m => {
         const isSel = state.selectedMemberFilter === m;
         html += `
-          <button type="button" onclick="setFilter('${m}')" class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+          <button type="button" onclick="setFilter('${m}')" class="px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all ${
             isSel ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
           }">${m}</button>
         `;
       });
       html += `
-        <button type="button" onclick="openModal('modalAddMember')" class="px-3.5 py-1.5 rounded-full text-xs font-semibold border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:border-indigo-500 flex items-center gap-1">
+        <button type="button" onclick="openModal('modalAddMember')" class="px-3.5 py-1.5 rounded-full text-sm font-semibold border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:border-indigo-500 flex items-center gap-1">
           <i class="fa-solid fa-plus"></i> 구성원 추가
         </button>
       `;
@@ -1351,13 +1365,8 @@
       renderFixedMonthlySummary();
       const balance = inc - (exp + sav);
       const balanceText = document.getElementById('dashBalanceSum');
-      balanceText.innerText = formatRoundedManwon(balance);
-      
-      if (balance < 0) {
-        balanceText.className = "text-base sm:text-lg font-bold text-rose-600 dark:text-rose-400";
-      } else {
-        balanceText.className = "text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400";
-      }
+      balanceText.innerText = `${Math.round(balance).toLocaleString('ko-KR')}원`;
+      balanceText.className = "text-base sm:text-lg font-bold text-amber-500 dark:text-amber-400";
 
       const expPct = inc > 0 ? Math.round((exp / inc) * 100) : 0;
       const savPct = inc > 0 ? Math.round((sav / inc) * 100) : 0;
@@ -1366,31 +1375,25 @@
       document.getElementById('dashExp').innerText = `${formatRoundedManwon(exp)} (${expPct}%)`;
       document.getElementById('dashSav').innerText = `${formatRoundedManwon(sav)} (${savPct}%)`;
 
+      // 12시 방향부터 지출(빨강) → 저축(보라) → 남은 수입(초록) 순서로 원을 나눕니다.
       const segmentsGroup = document.getElementById('chartSegments');
-      if (inc <= 0) {
-        segmentsGroup.innerHTML = `<circle cx="18" cy="18" r="15.9155" fill="none" stroke="#cbd5e1" stroke-width="4" />`;
-        return;
-      }
-
       const radius = 15.9155;
       const circumference = 2 * Math.PI * radius;
-      let cumulativePercent = 0;
-
-      const data = [
-        { label: '지출', val: exp, color: '#f43f5e' },
-        { label: '저축', val: sav, color: '#6366f1' },
-        { label: '잔액', val: Math.max(0, balance), color: '#10b981' }
-      ];
-
+      if (inc <= 0) {
+        segmentsGroup.innerHTML = '';
+        return;
+      }
+      const expenseRatio = Math.max(0, Math.min(1, exp / inc));
+      const savingRatio = Math.max(0, Math.min(1 - expenseRatio, sav / inc));
+      const expenseLength = expenseRatio * circumference;
+      const savingLength = savingRatio * circumference;
       let svgHtml = '';
-      data.forEach(item => {
-        if (item.val <= 0) return;
-        const pct = item.val / inc;
-        const strokeDasharray = `${pct * circumference} ${circumference}`;
-        const strokeDashoffset = -1 * (cumulativePercent * circumference);
-        svgHtml += `<circle cx="18" cy="18" r="${radius}" fill="none" stroke="${item.color}" stroke-width="4" stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}" />`;
-        cumulativePercent += pct;
-      });
+      if (expenseLength > 0) {
+        svgHtml += `<circle cx="18" cy="18" r="${radius}" fill="none" stroke="#f43f5e" stroke-width="5" stroke-dasharray="${expenseLength} ${circumference}" stroke-dashoffset="0" />`;
+      }
+      if (savingLength > 0) {
+        svgHtml += `<circle cx="18" cy="18" r="${radius}" fill="none" stroke="#6366f1" stroke-width="5" stroke-dasharray="${savingLength} ${circumference}" stroke-dashoffset="-${expenseLength}" />`;
+      }
       segmentsGroup.innerHTML = svgHtml;
     }
 
@@ -1402,11 +1405,17 @@
 
       document.getElementById('statSummaryIncome').innerText = formatRoundedManwon(totalInc);
       document.getElementById('statSummaryExpense').innerText = formatRoundedManwon(totalExp);
-      document.getElementById('statSummaryExpensePct').innerText = `(${expPct}%)`;
+      document.getElementById('statSummaryExpensePct').innerText = `${expPct}%`;
       document.getElementById('statSummarySaving').innerText = formatRoundedManwon(totalSav);
-      document.getElementById('statSummarySavingPct').innerText = `(${savPct}%)`;
+      document.getElementById('statSummarySavingPct').innerText = `${savPct}%`;
       document.getElementById('statSummaryBalance').innerText = formatRoundedManwon(balance);
-      document.getElementById('statSummaryBalancePct').innerText = `(${balPct}%)`;
+      document.getElementById('statSummaryBalancePct').innerText = `${balPct}%`;
+      const expenseWidth = Math.max(0, Math.min(100, totalInc > 0 ? totalExp / totalInc * 100 : 0));
+      const savingWidth = Math.max(0, Math.min(100 - expenseWidth, totalInc > 0 ? totalSav / totalInc * 100 : 0));
+      const balanceWidth = Math.max(0, 100 - expenseWidth - savingWidth);
+      document.getElementById('statExpenseBar').style.width = `${expenseWidth}%`;
+      document.getElementById('statSavingBar').style.width = `${savingWidth}%`;
+      document.getElementById('statBalanceBar').style.width = `${balanceWidth}%`;
 
       const container = document.getElementById('statsBreakdown');
       const types = ['수입', '지출', '저축'];
