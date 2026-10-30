@@ -139,6 +139,34 @@
     align-items: center;
     justify-content: center;
   }
+  /* 고정비 시작월·종료월: 모바일에서도 겹치지 않는 5:5 배치와 동일한 높이 */
+  #modalFixedExpenses .fixed-pair-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    column-gap: 8px !important;
+    width: 100% !important;
+  }
+  #modalFixedExpenses .fixed-pair-row > div {
+    min-width: 0 !important;
+    width: 100% !important;
+    overflow: hidden;
+  }
+  #modalFixedExpenses #fixedStart,
+  #modalFixedExpenses #fixedEnd {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    box-sizing: border-box !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    font-size: 16px !important;
+    line-height: normal !important;
+    -webkit-appearance: none;
+    appearance: none;
+  }
 </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
