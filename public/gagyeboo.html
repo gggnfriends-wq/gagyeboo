@@ -1368,23 +1368,15 @@
       renderStats(filtered, inc, exp, sav);
     }
 
-    // 천원 단위로 반올림하고, 소수점 없이 만원·천원 단위로 표시합니다.
+    // 사이트의 요약 금액은 모두 만원 단위로 반올림해 표시합니다.
     function formatRoundedManwon(amount) {
-      const value = Math.round((Number(amount) || 0) / 1000) * 1000;
-      const sign = value < 0 ? '-' : '';
-      const absolute = Math.abs(value);
-      const manwon = Math.floor(absolute / 10000);
-      const thousand = Math.round((absolute % 10000) / 1000);
-      if (thousand >= 10) return `${sign}${(manwon + 1).toLocaleString('ko-KR')}만원`;
-      if (manwon && thousand) return `${sign}${manwon.toLocaleString('ko-KR')}만 ${thousand}천원`;
-      if (manwon) return `${sign}${manwon.toLocaleString('ko-KR')}만원`;
-      return `${sign}${thousand}천원`;
-    }
-
-    // 만원 단위로 반올림해 천원 단위가 표시되지 않도록 합니다.
-    function formatWholeManwon(amount) {
       const rounded = Math.round((Number(amount) || 0) / 10000);
       return `${rounded.toLocaleString('ko-KR')}만원`;
+    }
+
+    // 기존 호출부 호환을 위해 같은 만원 단위 포맷을 사용합니다.
+    function formatWholeManwon(amount) {
+      return formatRoundedManwon(amount);
     }
 
     function getCurrentMonthFixedItems(type) {
@@ -1397,7 +1389,7 @@
       Object.entries(map).forEach(([type, id]) => {
         const total = getCurrentMonthFixedItems(type).reduce((sum, item) => sum + item.displayAmount, 0);
         const button = document.getElementById(id);
-        if (button) button.textContent = type === '지출' ? formatWholeManwon(total) : formatRoundedManwon(total);
+        if (button) button.textContent = formatRoundedManwon(total);
       });
     }
 
@@ -1407,9 +1399,9 @@
       const [detailYear, detailMonth] = (state.selectedMonth || currentMonthKey()).split('-');
       document.getElementById('fixedMonthlyDetailTitle').textContent = `${String(detailYear).slice(-2)}.${String(detailMonth).padStart(2, '0')} 고정 ${type} 내역`;
       const host = document.getElementById('fixedMonthlyDetailList');
-      host.innerHTML = items.length ? items.map(item => `<div class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-3"><div class="min-w-0"><div class="font-semibold truncate">${escapeHtml(item.desc || item.name || item.subcategory || '고정 내역')}</div><div class="text-xs text-slate-500">${escapeHtml(item.person || '')} · ${escapeHtml(item.subcategory || '')} · 매월 ${Number(item.day) || 1}일</div></div><div class="font-bold whitespace-nowrap ${colors[type]}">${type === '지출' ? formatWholeManwon(item.displayAmount) : formatRoundedManwon(item.displayAmount)}</div></div>`).join('') : '<p class="text-center text-sm text-slate-400 py-6">이번 달 등록된 고정 내역이 없습니다.</p>';
+      host.innerHTML = items.length ? items.map(item => `<div class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-3"><div class="min-w-0"><div class="font-semibold truncate">${escapeHtml(item.desc || item.name || item.subcategory || '고정 내역')}</div><div class="text-xs text-slate-500">${escapeHtml(item.person || '')} · ${escapeHtml(item.subcategory || '')} · 매월 ${Number(item.day) || 1}일</div></div><div class="font-bold whitespace-nowrap ${colors[type]}">${formatRoundedManwon(item.displayAmount)}</div></div>`).join('') : '<p class="text-center text-sm text-slate-400 py-6">이번 달 등록된 고정 내역이 없습니다.</p>';
       const detailTotal = items.reduce((sum, item) => sum + item.displayAmount, 0);
-      document.getElementById('fixedMonthlyDetailTotal').textContent = type === '지출' ? formatWholeManwon(detailTotal) : formatRoundedManwon(detailTotal);
+      document.getElementById('fixedMonthlyDetailTotal').textContent = formatRoundedManwon(detailTotal);
       openModal('modalFixedMonthlyDetails');
     }
 
@@ -1428,7 +1420,7 @@
       document.getElementById('statSummaryIncome').innerText = formatRoundedManwon(totalInc);
       document.getElementById('statSummaryExpense').innerText = formatRoundedManwon(totalExp);
       document.getElementById('statSummaryExpensePct').innerText = `${expPct}%`;
-      document.getElementById('statSummarySaving').innerText = formatWholeManwon(totalSav);
+      document.getElementById('statSummarySaving').innerText = formatRoundedManwon(totalSav);
       document.getElementById('statSummarySavingPct').innerText = `${savPct}%`;
       document.getElementById('statSummaryBalance').innerText = formatRoundedManwon(balance);
       document.getElementById('statSummaryBalancePct').innerText = `${balPct}%`;
