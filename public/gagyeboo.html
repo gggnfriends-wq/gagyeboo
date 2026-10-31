@@ -185,6 +185,14 @@
     #tabBtnDashboard, #tabBtnList, #tabBtnStats, #tabBtnEdit { font-size:18px !important; }
     #tabContentStats :not(i), #tabContentEdit :not(i) { font-size:18px !important; }
   }
+  /* 모바일 내역 추가: 날짜 텍스트를 입력칸 중앙에 정렬 */
+  #txDateAmountRow #formDate {
+    text-align: center !important;
+    text-align-last: center !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+  /* 고정 선택 시 시작월·종료월 입력칸을 다른 입력칸과 같은 높이로, 부모 안에 맞춤 */
 </style>
 <style>
 
@@ -355,7 +363,7 @@
 
       <!-- 조회 대상 필터 -->
       <section class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700/60">
-        <div class="flex items-center justify-between mb-2"><div class="text-sm font-semibold text-slate-500 dark:text-slate-400">조회 대상</div><button type="button" onclick="openMemberManager()" class="text-xs font-bold text-indigo-600 dark:text-indigo-300">등록 / 편집 / 삭제</button></div>
+        <div class="flex items-center justify-between mb-2"><div class="text-sm font-semibold text-slate-500 dark:text-slate-400">조회 대상</div><button type="button" onclick="openMemberManager()" class="text-xs font-bold text-indigo-600 dark:text-indigo-300">관리</button></div>
         <div id="memberFilterList" class="flex flex-wrap gap-2"></div>
       </section>
 
@@ -403,11 +411,16 @@
 
       <!-- [탭 2] 내역 관리 -->
       <section id="tabContentList" class="space-y-4 hidden">
-        <div class="flex justify-between items-center">
-          <h2 class="text-lg font-bold">거래 내역</h2>
-          <button type="button" onclick="openModal('modalAddTx')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-xl shadow-sm transition-all flex items-center gap-1.5">
-            <i class="fa-solid fa-plus"></i> 내역 추가
-          </button>
+        <div class="flex justify-between items-center gap-2">
+          <h2 class="text-lg font-bold shrink-0">거래 내역</h2>
+          <div class="flex items-center gap-2 shrink-0">
+            <button type="button" onclick="openFixedExpenseManager()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-3 py-2 rounded-xl shadow-sm transition-all flex items-center gap-1.5 whitespace-nowrap">
+              <i class="fa-solid fa-plus"></i> 고정비
+            </button>
+            <button type="button" onclick="openModal('modalAddTx')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-3 py-2 rounded-xl shadow-sm transition-all flex items-center gap-1.5 whitespace-nowrap">
+              <i class="fa-solid fa-plus"></i> 내역 추가
+            </button>
+          </div>
         </div>
         <div id="txList" class="space-y-2"></div>
       </section>
@@ -546,18 +559,6 @@
           <input type="text" id="formCustomDesc" placeholder="내용 직접 입력" class="w-full px-4 py-2.5 rounded-xl border border-indigo-400 dark:bg-slate-700 hidden">
         </div>
 
-        <div class="rounded-xl border border-indigo-200 dark:border-indigo-800 p-3 space-y-3">
-          <label class="flex items-center gap-2 font-semibold text-sm"><input id="txIsFixed" type="checkbox" class="w-4 h-4 accent-indigo-600" onchange="toggleFixedTxFields()"> 고정 (매월 자동 등록)</label>
-          <div id="txFixedFields" class="hidden space-y-3">
-            <div class="grid grid-cols-2 gap-2">
-              <div><label class="block text-xs text-slate-500 mb-1">매월 등록일</label><input id="txFixedDay" type="number" min="1" max="31" value="25" class="w-full box-border rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-2.5"></div>
-              <div><label class="block text-xs text-slate-500 mb-1">시작 월</label><input id="txFixedStart" type="month" class="w-full min-w-0 box-border rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-2.5"></div>
-            </div>
-            <div><label class="block text-xs text-slate-500 mb-1">종료 월 (선택)</label><input id="txFixedEnd" type="month" class="w-full min-w-0 box-border rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-2.5"></div>
-            <p class="text-xs text-slate-400">체크하면 선택한 수입·지출·저축 항목이 설정한 기간 동안 매월 자동 등록됩니다.</p>
-            <button type="button" onclick="openFixedExpenseManager()" class="text-xs font-semibold text-indigo-600 dark:text-indigo-300 underline">등록된 고정 내역 관리</button>
-          </div>
-        </div>
         <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all">저장하기</button>
       </form>
     </div>
@@ -587,7 +588,17 @@
           <div><label class="block text-xs text-slate-500 mb-1">구성원</label><select id="fixedPerson" class="fixed-pair-control rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3"></select></div>
           <div><label class="block text-xs text-slate-500 mb-1">매월 결제일</label><input id="fixedDay" type="number" min="1" max="31" value="25" class="fixed-pair-control rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3"></div>
         </div>
-        <div><label class="block text-xs text-slate-500 mb-1">항목명</label><input id="fixedName" type="text" placeholder="예: 교통비, 월세, 보험료" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-2"></div>
+        <div>
+          <label class="block text-xs text-slate-500 mb-1">항목</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" id="fixedTypeIncome" onclick="selectFixedType('수입')" class="py-2 rounded-xl font-bold border text-sm">수입</button>
+            <button type="button" id="fixedTypeExpense" onclick="selectFixedType('지출')" class="py-2 rounded-xl font-bold border text-sm">지출</button>
+            <button type="button" id="fixedTypeSaving" onclick="selectFixedType('저축')" class="py-2 rounded-xl font-bold border text-sm">저축</button>
+          </div>
+        </div>
+        <div><label class="block text-xs text-slate-500 mb-1">세부 항목</label><select id="fixedSubcategory" onchange="handleFixedSubcatChange()" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 mb-2"></select><input id="fixedCustomSubcat" type="text" placeholder="세부항목 직접 입력" class="hidden w-full rounded-xl border border-indigo-400 dark:bg-slate-700 px-3"></div>
+        <div><label class="block text-xs text-slate-500 mb-1">내용</label><select id="fixedDescSelect" onchange="handleFixedDescChange()" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 mb-2"></select><input id="fixedCustomDesc" type="text" placeholder="내용 직접 입력" class="hidden w-full rounded-xl border border-indigo-400 dark:bg-slate-700 px-3"></div>
+        <div><label class="block text-xs text-slate-500 mb-1">항목명 (관리용)</label><input id="fixedName" type="text" placeholder="예: 월세, 보험료, 정기급여" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-2"></div>
         <div><label class="block text-xs text-slate-500 mb-1">매월 금액(원)</label><input id="fixedAmount" type="number" min="0" placeholder="100000" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-2"></div>
         <div class="fixed-pair-row">
           <div><label class="block text-xs text-slate-500 mb-1">시작 월</label><input id="fixedStart" type="month" class="fixed-pair-control rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3"></div>
@@ -827,7 +838,7 @@
 
     function openModal(id) {
       document.getElementById(id).classList.remove('hidden');
-      if (id === 'modalAddTx') { prepareTxForm(); const fixedCheck=document.getElementById('txIsFixed'); if(fixedCheck){fixedCheck.checked=false; toggleFixedTxFields(); document.getElementById('txFixedStart').value=currentMonthKey(); document.getElementById('txFixedEnd').value=''; document.getElementById('txFixedDay').value='25';} }
+      if (id === 'modalAddTx') prepareTxForm();
     }
 
     function closeModal(id) {
@@ -956,12 +967,6 @@
       }
     }
 
-    function toggleFixedTxFields() {
-      const checked = document.getElementById('txIsFixed').checked;
-      document.getElementById('txFixedFields').classList.toggle('hidden', !checked);
-      if (checked && !document.getElementById('txFixedStart').value) document.getElementById('txFixedStart').value = currentMonthKey();
-    }
-
     function handleTxSubmit(e) {
       e.preventDefault();
       if (!state.formPerson) {
@@ -1008,15 +1013,6 @@
       };
 
       state.transactions.unshift(newTx);
-      if (document.getElementById('txIsFixed').checked) {
-        const start = document.getElementById('txFixedStart').value;
-        const end = document.getElementById('txFixedEnd').value;
-        const day = Math.max(1, Math.min(31, Number(document.getElementById('txFixedDay').value) || 1));
-        if (!start || (end && end < start)) { state.transactions.shift(); alert('고정 내역의 시작 월과 종료 월을 확인해주세요.'); return; }
-        const fixed = { id: `fx-${Date.now()}`, person: newTx.person, name: newTx.desc || newTx.subcategory, amount: newTx.amount, day, start, end, type: newTx.type, subcategory: newTx.subcategory, desc: newTx.desc, overrides: {} };
-        state.fixedExpenses.push(fixed);
-        ensureFixedExpensesThroughCurrentMonth(true);
-      }
       saveState();
       closeModal('modalAddTx');
       renderUI();
@@ -1039,6 +1035,46 @@
       openModal('modalFixedExpenses');
     }
     function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    let fixedFormType = '지출';
+    function selectFixedType(type) {
+      fixedFormType = type;
+      const map = { '수입': 'Income', '지출': 'Expense', '저축': 'Saving' };
+      ['Income','Expense','Saving'].forEach(key => {
+        const button = document.getElementById(`fixedType${key}`);
+        if (button) button.className = 'py-2 rounded-xl font-bold border text-sm border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300';
+      });
+      const colors = { '수입':'emerald', '지출':'rose', '저축':'indigo' };
+      const active = document.getElementById(`fixedType${map[type]}`);
+      if (active) active.className = `py-2 rounded-xl font-bold border text-sm border-${colors[type]}-500 bg-${colors[type]}-50 dark:bg-${colors[type]}-950/30 text-${colors[type]}-600`;
+      populateFixedSubcats();
+    }
+    function populateFixedSubcats(selected) {
+      const select = document.getElementById('fixedSubcategory');
+      const values = state.customSubcats[fixedFormType] || [];
+      select.innerHTML = values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('') + '<option value="항목추가(직접입력)">항목추가(직접입력)</option>';
+      if (selected && [...select.options].some(o => o.value === selected)) select.value = selected;
+      handleFixedSubcatChange();
+    }
+    function handleFixedSubcatChange() {
+      const select = document.getElementById('fixedSubcategory');
+      const custom = document.getElementById('fixedCustomSubcat');
+      const isCustom = select.value === '항목추가(직접입력)';
+      custom.classList.toggle('hidden', !isCustom);
+      populateFixedDescs();
+    }
+    function populateFixedDescs(selected) {
+      const sub = document.getElementById('fixedSubcategory').value;
+      const current = sub === '항목추가(직접입력)' ? '기타' : sub;
+      const values = state.customDescs[`${fixedFormType}_${current}`] || ['내용없음'];
+      const select = document.getElementById('fixedDescSelect');
+      select.innerHTML = values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('') + '<option value="내용추가(직접입력)">내용추가(직접입력)</option>';
+      if (selected && [...select.options].some(o => o.value === selected)) select.value = selected;
+      handleFixedDescChange();
+    }
+    function handleFixedDescChange() {
+      const select = document.getElementById('fixedDescSelect');
+      document.getElementById('fixedCustomDesc').classList.toggle('hidden', select.value !== '내용추가(직접입력)');
+    }
     function resetFixedExpenseForm() {
       document.getElementById('fixedExpenseId').value = '';
       document.getElementById('fixedExpenseFormTitle').innerText = '새 고정비 등록';
@@ -1047,13 +1083,16 @@
       document.getElementById('fixedDay').value = '25';
       document.getElementById('fixedStart').value = currentMonthKey();
       document.getElementById('fixedEnd').value = '';
+      document.getElementById('fixedCustomSubcat').value = '';
+      document.getElementById('fixedCustomDesc').value = '';
       if (state.members.length) document.getElementById('fixedPerson').value = state.members[0];
+      selectFixedType('지출');
     }
     function renderFixedExpenseList() {
       const host = document.getElementById('fixedExpenseList');
       const items = state.fixedExpenses || [];
       if (!items.length) { host.innerHTML = '<p class="text-sm text-slate-400 text-center py-3">등록된 고정비가 없습니다.</p>'; return; }
-      host.innerHTML = items.map(f => `<div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2"><div class="flex justify-between gap-2"><div class="min-w-0"><div class="font-bold">${escapeHtml(f.name)} · ${Number(f.amount).toLocaleString()}원</div><div class="text-xs text-slate-500">${escapeHtml(f.person)} · 매월 ${f.day}일 · ${f.start} ~ ${f.end || '기한 없음'}</div></div><div class="flex gap-2 shrink-0"><button type="button" onclick="editFixedExpense('${f.id}')" class="text-indigo-500 text-xs font-semibold">수정</button><button type="button" onclick="removeFixedExpense('${f.id}')" class="text-rose-500 text-xs font-semibold">삭제</button></div></div><button type="button" onclick="applyFixedException('${f.id}')" class="w-full py-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 text-xs font-bold">${state.selectedMonth}만 금액 예외 적용</button></div>`).join('');
+      host.innerHTML = items.map(f => `<div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2"><div class="flex justify-between gap-2"><div class="min-w-0"><div class="font-bold">${escapeHtml(f.name)} · ${Number(f.amount).toLocaleString()}원</div><div class="text-sm">${escapeHtml(f.type || '지출')} · ${escapeHtml(f.subcategory || '고정비')} · ${escapeHtml(f.desc || f.name || '내용없음')}</div><div class="text-xs text-slate-500">${escapeHtml(f.person)} · 매월 ${f.day}일 · ${f.start} ~ ${f.end || '기한 없음'}</div></div><div class="flex gap-2 shrink-0"><button type="button" onclick="editFixedExpense('${f.id}')" class="text-indigo-500 text-xs font-semibold">수정</button><button type="button" onclick="removeFixedExpense('${f.id}')" class="text-rose-500 text-xs font-semibold">삭제</button></div></div><button type="button" onclick="applyFixedException('${f.id}')" class="w-full py-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 text-xs font-bold">${state.selectedMonth}만 금액 예외 적용</button></div>`).join('');
     }
     async function saveFixedExpense() {
       const id = document.getElementById('fixedExpenseId').value;
@@ -1063,12 +1102,26 @@
       const day = Math.max(1, Math.min(31, Number(document.getElementById('fixedDay').value) || 1));
       const start = document.getElementById('fixedStart').value;
       const end = document.getElementById('fixedEnd').value;
+      let subcategory = document.getElementById('fixedSubcategory').value;
+      if (subcategory === '항목추가(직접입력)') {
+        subcategory = document.getElementById('fixedCustomSubcat').value.trim();
+        if (!subcategory) { alert('세부항목을 입력해주세요.'); return; }
+        if (!state.customSubcats[fixedFormType].includes(subcategory)) state.customSubcats[fixedFormType].push(subcategory);
+      }
+      let desc = document.getElementById('fixedDescSelect').value;
+      if (desc === '내용추가(직접입력)') {
+        desc = document.getElementById('fixedCustomDesc').value.trim();
+        if (!desc) { alert('내용을 입력해주세요.'); return; }
+      }
+      const descKey = `${fixedFormType}_${subcategory}`;
+      if (!state.customDescs[descKey]) state.customDescs[descKey] = ['내용없음'];
+      if (!state.customDescs[descKey].includes(desc)) state.customDescs[descKey].push(desc);
       if (!person || !name || !Number.isFinite(amount) || amount < 0 || !start || (end && end < start)) { alert('구성원, 항목명, 금액, 시작 월을 확인해주세요.'); return; }
       const existing = (state.fixedExpenses || []).find(f => String(f.id) === String(id));
       const overrides = { ...(existing?.overrides || {}) };
       // 기본 금액/기간 수정은 선택한 달부터 적용하고, 그 이후의 월별 예외는 새 기본값과 충돌하지 않게 정리합니다.
       if (id) Object.keys(overrides).forEach(k => { if (k >= state.selectedMonth) delete overrides[k]; });
-      const item = { id: id || `fx-${Date.now()}`, person, name, amount, day, start, end, overrides, type: existing?.type || '지출', subcategory: existing?.subcategory || '고정비', desc: existing?.desc || name };
+      const item = { id: id || `fx-${Date.now()}`, person, name, amount, day, start, end, overrides, type: fixedFormType, subcategory, desc };
       if (id) state.fixedExpenses = state.fixedExpenses.map(f => String(f.id) === String(id) ? item : f); else state.fixedExpenses.push(item);
       // 시작월부터 현재월까지 월별 자동 내역을 생성하므로 과거 월 목록에도 빠지지 않습니다.
       ensureFixedExpensesThroughCurrentMonth(true);
@@ -1089,6 +1142,9 @@
       document.getElementById('fixedDay').value = f.day;
       document.getElementById('fixedStart').value = f.start;
       document.getElementById('fixedEnd').value = f.end || '';
+      selectFixedType(f.type || '지출');
+      if (f.subcategory) populateFixedSubcats(f.subcategory);
+      if (f.desc) populateFixedDescs(f.desc);
       document.getElementById('fixedName').focus();
     }
     function removeFixedExpense(id) {
