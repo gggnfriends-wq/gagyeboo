@@ -32,6 +32,16 @@
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
+  /* 고정 내역 상세: 모바일에서 항목명과 금액이 한 글자씩 어색하게 줄바꿈되지 않도록 */
+  .fixed-detail-group-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; min-width:0; }
+  .fixed-detail-group-name { flex:1 1 auto; min-width:0; font-weight:700; font-size:clamp(13px, 3.7vw, 16px); line-height:1.35; word-break:keep-all; overflow-wrap:break-word; }
+  .fixed-detail-group-total { flex:0 0 auto; white-space:nowrap; font-weight:700; font-size:clamp(11px, 3.2vw, 14px); line-height:1.35; font-variant-numeric:tabular-nums; }
+  @media (max-width:360px) {
+    .fixed-detail-group-heading { gap:6px; }
+    .fixed-detail-group-name { font-size:13px; }
+    .fixed-detail-group-total { font-size:11px; }
+  }
+
   /* 모바일에서 큰 금액과 긴 거래명이 화면 밖으로 밀려나지 않도록 */
   #txList > div { min-width: 0; gap: 8px; }
   #txList > div > div:first-child { min-width: 0; flex: 1 1 auto; overflow-wrap: anywhere; }
@@ -410,12 +420,14 @@
       <!-- [탭 1] 대시보드 -->
       <section id="tabContentDashboard" class="space-y-6">
         <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-3">
-          <div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-bold">이번 달 고정 내역</h3><span class="text-[11px] text-slate-400">금액을 누르면 상세 내역</span></div>
+          <div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-bold">이번 달 고정 내역</h3></div>
+          <div class="text-[11px] text-slate-400 -mt-2">항목을 누르면 상세 내역</div>
           <div class="grid grid-cols-3 gap-2 text-center">
             <div class="rounded-xl bg-emerald-50 dark:bg-emerald-950/20 p-3"><div class="text-xs font-semibold text-emerald-600 mb-1">수입</div><button type="button" id="fixedMonthlyIncome" onclick="openFixedMonthlyDetails('수입')" class="font-bold text-sm text-emerald-700 dark:text-emerald-300 underline underline-offset-2">0원</button></div>
             <div class="rounded-xl bg-rose-50 dark:bg-rose-950/20 p-3"><div class="text-xs font-semibold text-rose-600 mb-1">지출</div><button type="button" id="fixedMonthlyExpense" onclick="openFixedMonthlyDetails('지출')" class="font-bold text-sm text-rose-700 dark:text-rose-300 underline underline-offset-2">0원</button></div>
             <div class="rounded-xl bg-indigo-50 dark:bg-indigo-950/20 p-3"><div class="text-xs font-semibold text-indigo-600 mb-1">저축</div><button type="button" id="fixedMonthlySaving" onclick="openFixedMonthlyDetails('저축')" class="font-bold text-sm text-indigo-700 dark:text-indigo-300 underline underline-offset-2">0원</button></div>
           </div>
+          <div id="fixedMonthlyBreakdown" class="space-y-3"></div>
         </div>
         <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-3">
           <h3 class="text-base sm:text-lg font-bold">기간별 수입·지출·저축 요약</h3>
@@ -438,7 +450,8 @@
             </button>
           </div>
         </div>
-        <div id="txList" class="space-y-2"></div>
+        <div id="txMemberFilter" class="flex flex-wrap gap-2" aria-label="내역 구성원 필터"></div>
+        <div id="txList" class="space-y-3"></div>
       </section>
 
       <!-- [탭 3] 통계 분석 -->
@@ -447,7 +460,7 @@
         <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-4">
           <div class="flex items-center justify-between gap-3 flex-wrap">
             <h3 class="text-lg sm:text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-slate-100">
-              <i class="fa-solid fa-chart-pie text-indigo-500"></i> 수입기준 전체요약
+              <i class="fa-solid fa-chart-pie text-indigo-500"></i> 이번달 요약
             </h3>
             <div class="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400">총 수입 <span id="statSummaryIncome">0만원</span></div>
           </div>
@@ -584,7 +597,8 @@
   <div id="modalFixedMonthlyDetails" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
     <div class="bg-white dark:bg-slate-800 w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-5 space-y-4 max-h-[85vh] overflow-y-auto">
       <div class="flex items-center justify-between"><h3 id="fixedMonthlyDetailTitle" class="text-lg font-bold">고정 내역 상세</h3><button type="button" onclick="closeModal('modalFixedMonthlyDetails')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button></div>
-      <div id="fixedMonthlyDetailList" class="space-y-2"></div>
+      <div id="fixedMonthlyDetailMemberFilter" class="flex flex-wrap gap-2" aria-label="고정 내역 구성원 필터"></div>
+      <div id="fixedMonthlyDetailList" class="space-y-3"></div>
       <div class="border-t border-slate-200 dark:border-slate-700 pt-3 flex justify-between font-bold"><span>합계</span><span id="fixedMonthlyDetailTotal">0원</span></div>
     </div>
   </div>
@@ -597,7 +611,12 @@
         <button type="button" onclick="closeModal('modalFixedExpenses')" class="text-slate-400"><i class="fa-solid fa-xmark text-xl"></i></button>
       </div>
       <div id="fixedExpenseListPanel" class="space-y-3">
-        <div class="flex justify-end"><button type="button" onclick="openNewFixedExpenseForm()" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold shadow-sm"><i class="fa-solid fa-plus mr-1"></i>추가</button></div>
+        <div class="flex items-center justify-between gap-2">
+          <select id="fixedExpenseMemberFilter" onchange="renderFixedExpenseList()" class="min-w-0 flex-1 rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-2 text-sm">
+            <option value="ALL">전체 구성원</option>
+          </select>
+          <button type="button" onclick="openNewFixedExpenseForm()" class="shrink-0 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold shadow-sm"><i class="fa-solid fa-plus mr-1"></i>추가</button>
+        </div>
         <div id="fixedExpenseList" class="space-y-3 max-h-[65vh] overflow-y-auto overscroll-contain pr-1"></div>
       </div>
       <div id="fixedExpenseFormPanel" class="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-3 hidden">
@@ -623,6 +642,14 @@
           <div><label class="block text-xs text-slate-500 mb-1">종료 월 (선택)</label><input id="fixedEnd" type="month" class="fixed-pair-control rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3"></div>
         </div>
         <div><label class="block text-xs text-slate-500 mb-1">매월 금액(원)</label><input id="fixedAmount" type="number" min="0" placeholder="100000" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-2"></div>
+        <div id="fixedOverridePanel" class="hidden rounded-xl border border-amber-200 dark:border-amber-900 p-3 space-y-2">
+          <div class="font-semibold text-sm">선택한 달만 금액 변경</div>
+          <div class="text-xs text-slate-500">아래 금액을 입력하면 해당 월에만 적용됩니다. 비워두면 기본 금액을 사용합니다.</div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="block text-xs text-slate-500 mb-1">적용 월</label><input id="fixedOverrideMonth" type="month" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-2"></div>
+            <div><label class="block text-xs text-slate-500 mb-1">해당 월 금액(원)</label><input id="fixedOverrideAmount" type="number" min="0" placeholder="기본 금액 사용" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-2"></div>
+          </div>
+        </div>
         <div><label class="block text-xs text-slate-500 mb-1">세부 항목</label><select id="fixedSubcategory" onchange="handleFixedSubcatChange()" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 mb-2"></select><input id="fixedCustomSubcat" type="text" placeholder="세부항목 직접 입력" class="hidden w-full rounded-xl border border-indigo-400 dark:bg-slate-700 px-3"></div>
         <div><label class="block text-xs text-slate-500 mb-1">내용</label><select id="fixedDescSelect" onchange="handleFixedDescChange()" class="w-full rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 mb-2"></select><input id="fixedCustomDesc" type="text" placeholder="내용 직접 입력" class="hidden w-full rounded-xl border border-indigo-400 dark:bg-slate-700 px-3"></div>
         <p class="text-xs text-slate-400">종료 월을 비워두면 기한 없이 매월 자동 등록됩니다. 이미 지난 달의 내역은 자동으로 중복 생성하지 않습니다.</p>
@@ -658,6 +685,9 @@
     let state = {
       members: [],
       selectedMemberFilter: 'ALL',
+      selectedListMemberFilter: 'ALL',
+      selectedFixedDetailMemberFilter: 'ALL',
+      activeFixedDetailType: '지출',
       selectedMonth: `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`,
       transactions: [],
       fixedExpenses: [],
@@ -846,6 +876,27 @@
       container.innerHTML = html;
     }
 
+    function renderListMemberFilter() {
+      const container = document.getElementById('txMemberFilter');
+      if (!container) return;
+      if (state.selectedListMemberFilter !== 'ALL' && !state.members.includes(state.selectedListMemberFilter)) {
+        state.selectedListMemberFilter = 'ALL';
+      }
+      const options = ['ALL', ...state.members];
+      container.innerHTML = options.map(member => {
+        const selected = state.selectedListMemberFilter === member;
+        const label = member === 'ALL' ? '전체' : escapeHtml(member);
+        const value = JSON.stringify(member).replace(/</g, '\\u003c');
+        return `<button type="button" onclick='setListMemberFilter(${value})' class="px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all ${selected ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">${label}</button>`;
+      }).join('');
+    }
+
+    function setListMemberFilter(member) {
+      state.selectedListMemberFilter = member;
+      renderListMemberFilter();
+      renderUI();
+    }
+
     function setFilter(m) {
       state.selectedMemberFilter = m;
       renderFilter();
@@ -876,6 +927,7 @@
       state.transactions.forEach(t => { if (t.person === oldName) t.person = name; });
       (state.fixedExpenses || []).forEach(f => { if (f.person === oldName) f.person = name; });
       if (state.selectedMemberFilter === oldName) state.selectedMemberFilter = name;
+      if (state.selectedListMemberFilter === oldName) state.selectedListMemberFilter = name;
       if (state.formPerson === oldName) state.formPerson = name;
       saveState(); renderFilter(); renderMemberManager(); renderUI();
     }
@@ -884,6 +936,7 @@
       if (!confirm(`${name} 구성원을 삭제할까요? 기존 내역은 삭제하지 않고 구성원 이름만 유지됩니다.`)) return;
       state.members.splice(index,1);
       if (state.selectedMemberFilter === name) state.selectedMemberFilter = 'ALL';
+      if (state.selectedListMemberFilter === name) state.selectedListMemberFilter = 'ALL';
       if (state.formPerson === name) state.formPerson = state.members[0] || '';
       saveState(); renderFilter(); renderMemberManager(); renderUI();
     }
@@ -1046,6 +1099,10 @@
     function openFixedExpenseManager() {
       const person = document.getElementById('fixedPerson');
       person.innerHTML = (state.members || []).map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+      const memberFilter = document.getElementById('fixedExpenseMemberFilter');
+      const previousFilter = memberFilter.value || 'ALL';
+      memberFilter.innerHTML = '<option value="ALL">전체 구성원</option>' + (state.members || []).map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+      memberFilter.value = (state.members || []).includes(previousFilter) ? previousFilter : 'ALL';
       resetFixedExpenseForm();
       renderFixedExpenseList();
       showFixedExpenseList();
@@ -1111,6 +1168,9 @@
       document.getElementById('fixedExpenseId').value = '';
       document.getElementById('fixedExpenseFormTitle').innerText = '새 고정비 등록';
       document.getElementById('fixedAmount').value = '';
+      document.getElementById('fixedOverridePanel').classList.add('hidden');
+      document.getElementById('fixedOverrideMonth').value = state.selectedMonth || currentMonthKey();
+      document.getElementById('fixedOverrideAmount').value = '';
       document.getElementById('fixedDay').value = '25';
       document.getElementById('fixedStart').value = currentMonthKey();
       document.getElementById('fixedEnd').value = '';
@@ -1121,9 +1181,12 @@
     }
     function renderFixedExpenseList() {
       const host = document.getElementById('fixedExpenseList');
-      const items = state.fixedExpenses || [];
-      if (!items.length) { host.innerHTML = '<p class="text-sm text-slate-400 text-center py-3">등록된 고정비가 없습니다.</p>'; return; }
-      host.innerHTML = items.map(f => `<div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2"><div class="flex justify-between gap-2"><div class="min-w-0"><div class="font-bold">${escapeHtml(f.name)} · ${Number(f.amount).toLocaleString()}원</div><div class="text-sm">${escapeHtml(f.type || '지출')} · ${escapeHtml(f.subcategory || '고정비')} · ${escapeHtml(f.desc || f.name || '내용없음')}</div><div class="text-xs text-slate-500">${escapeHtml(f.person)} · 매월 ${f.day}일 · ${f.start} ~ ${f.end || '기한 없음'}</div></div><div class="flex gap-2 shrink-0"><button type="button" onclick="editFixedExpense('${f.id}')" class="text-indigo-500 text-xs font-semibold">수정</button><button type="button" onclick="removeFixedExpense('${f.id}')" class="text-rose-500 text-xs font-semibold">삭제</button></div></div><button type="button" onclick="applyFixedException('${f.id}')" class="w-full py-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 text-xs font-bold">${state.selectedMonth}만 금액 예외 적용</button></div>`).join('');
+      const memberFilter = document.getElementById('fixedExpenseMemberFilter')?.value || 'ALL';
+      const items = [...(state.fixedExpenses || [])]
+        .filter(f => memberFilter === 'ALL' || f.person === memberFilter)
+        .sort((a, b) => (Number(a.day) || 1) - (Number(b.day) || 1) || String(a.name || '').localeCompare(String(b.name || ''), 'ko'));
+      if (!items.length) { host.innerHTML = `<p class="text-sm text-slate-400 text-center py-3">${memberFilter === 'ALL' ? '등록된 고정비가 없습니다.' : '선택한 구성원의 고정비가 없습니다.'}</p>`; return; }
+      host.innerHTML = items.map(f => `<div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2"><div class="flex justify-between gap-2"><div class="min-w-0"><div class="font-bold">${escapeHtml(f.name)} · ${Number(f.amount).toLocaleString()}원</div><div class="text-sm">${escapeHtml(f.type || '지출')} · ${escapeHtml(f.subcategory || '고정비')} · ${escapeHtml(f.desc || f.name || '내용없음')}</div><div class="text-xs text-slate-500">${escapeHtml(f.person)} · 매월 ${f.day}일 · ${f.start} ~ ${f.end || '기한 없음'}</div></div><div class="flex gap-2 shrink-0"><button type="button" onclick="editFixedExpense('${f.id}')" class="text-indigo-500 text-xs font-semibold">수정</button><button type="button" onclick="removeFixedExpense('${f.id}')" class="text-rose-500 text-xs font-semibold">삭제</button></div></div></div>`).join('');
     }
     async function saveFixedExpense() {
       const id = document.getElementById('fixedExpenseId').value;
@@ -1151,8 +1214,21 @@
       if (!person || !Number.isFinite(amount) || amount <= 0 || !start || (end && end < start)) { alert('구성원, 금액, 시작 월을 확인해주세요.'); return; }
       const existing = (state.fixedExpenses || []).find(f => String(f.id) === String(id));
       const overrides = { ...(existing?.overrides || {}) };
-      // 기본 금액/기간 수정은 선택한 달부터 적용하고, 그 이후의 월별 예외는 새 기본값과 충돌하지 않게 정리합니다.
+      // 기본 금액/기간 수정은 선택한 달부터 적용하고, 이후 월별 예외는 수정 화면에서 지정한 값만 유지합니다.
       if (id) Object.keys(overrides).forEach(k => { if (k >= state.selectedMonth) delete overrides[k]; });
+      if (id) {
+        const overrideMonth = document.getElementById('fixedOverrideMonth').value;
+        const overrideRaw = document.getElementById('fixedOverrideAmount').value.trim();
+        if (overrideMonth && overrideMonth >= start && (!end || overrideMonth <= end)) {
+          if (overrideRaw !== '') {
+            const overrideAmount = Number(overrideRaw);
+            if (!Number.isFinite(overrideAmount) || overrideAmount < 0) { alert('해당 월 금액을 확인해주세요.'); return; }
+            overrides[overrideMonth] = Math.round(overrideAmount);
+          } else {
+            delete overrides[overrideMonth];
+          }
+        }
+      }
       const item = { id: id || `fx-${Date.now()}`, person, name, amount, day, start, end, overrides, type: fixedFormType, subcategory, desc };
       if (id) state.fixedExpenses = state.fixedExpenses.map(f => String(f.id) === String(id) ? item : f); else state.fixedExpenses.push(item);
       // 시작월부터 현재월까지 월별 자동 내역을 생성하므로 과거 월 목록에도 빠지지 않습니다.
@@ -1168,6 +1244,10 @@
     function editFixedExpense(id) {
       const f = state.fixedExpenses.find(x => String(x.id) === String(id)); if (!f) return;
       document.getElementById('fixedExpenseId').value = f.id;
+      document.getElementById('fixedOverridePanel').classList.remove('hidden');
+      document.getElementById('fixedOverrideMonth').value = state.selectedMonth || currentMonthKey();
+      const currentOverride = (f.overrides || {})[document.getElementById('fixedOverrideMonth').value];
+      document.getElementById('fixedOverrideAmount').value = currentOverride === undefined ? '' : currentOverride;
       document.getElementById('fixedExpenseFormTitle').innerText = '고정비 수정 (변경사항은 이후 자동 등록분에 적용)';
       document.getElementById('fixedPerson').value = f.person;
       document.getElementById('fixedAmount').value = f.amount;
@@ -1183,16 +1263,6 @@
       if (!confirm('이 고정비의 향후 자동 등록을 중단할까요? 이미 생성된 과거 내역은 유지됩니다.')) return;
       state.fixedExpenses = state.fixedExpenses.filter(f => String(f.id) !== String(id));
       saveState(); renderFixedExpenseList();
-    }
-    function applyFixedException(id) {
-      const f = state.fixedExpenses.find(x => String(x.id) === String(id)); if (!f) return;
-      const raw = prompt(`${state.selectedMonth} ${f.name}의 이번 달 금액을 입력하세요. 다음 달부터는 기본 금액 ${Number(f.amount).toLocaleString()}원이 적용됩니다.`, String(f.amount));
-      if (raw === null) return;
-      const amount = Number(raw);
-      if (!Number.isFinite(amount) || amount < 0) { alert('올바른 금액을 입력해주세요.'); return; }
-      f.overrides = f.overrides || {}; f.overrides[state.selectedMonth] = Math.round(amount);
-      ensureFixedExpensesForMonth(state.selectedMonth, true);
-      saveState(); renderFixedExpenseList(); renderUI();
     }
     function ensureFixedExpensesForMonth(key, refreshExisting = false, persist = true) {
       if (!/^\d{4}-\d{2}$/.test(key)) return false;
@@ -1390,8 +1460,12 @@
         return `<span class="summary-amount ${color} font-bold text-right tabular-nums whitespace-nowrap leading-tight">${exact}</span>`;
       };
       const amountRows = data => {
-        const rows = [['수입',data.inc,'text-emerald-600 dark:text-emerald-400'],['지출',data.exp,'text-rose-600 dark:text-rose-400'],['저축',data.sav,'text-indigo-600 dark:text-indigo-400']];
-        return `<div class="space-y-2.5">${rows.map(([name,value,color]) => `<div class="flex items-center justify-between gap-3 min-w-0"><span class="${color} shrink-0 font-medium">${name}</span>${amountButton(value,color)}</div>`).join('')}</div>`;
+        const rows = [
+          ['수입', data.inc, 'text-emerald-600 dark:text-emerald-400', 'fa-wallet', 'bg-emerald-100 dark:bg-emerald-900/30'],
+          ['지출', data.exp, 'text-rose-600 dark:text-rose-400', 'fa-credit-card', 'bg-rose-100 dark:bg-rose-900/30'],
+          ['저축', data.sav, 'text-indigo-600 dark:text-indigo-400', 'fa-piggy-bank', 'bg-indigo-100 dark:bg-indigo-900/30']
+        ];
+        return `<div class="grid grid-cols-3 gap-2 sm:gap-3">${rows.map(([name,value,color,icon,bg]) => `<div class="min-w-0 rounded-xl ${bg} p-2.5 sm:p-3 text-center"><div class="flex items-center justify-center gap-1.5 mb-2"><i class="fa-solid ${icon} ${color} text-base sm:text-lg" aria-hidden="true"></i><span class="${color} font-semibold text-xs sm:text-sm">${name}</span></div><div class="flex justify-center">${amountButton(value,color)}</div></div>`).join('')}</div>`;
       };
       const comparisonRows = (base, now) => {
         const rows = [['수입',base.inc,now.inc,'text-emerald-600 dark:text-emerald-400'],['지출',base.exp,now.exp,'text-rose-600 dark:text-rose-400'],['저축',base.sav,now.sav,'text-indigo-600 dark:text-indigo-400']];
@@ -1424,29 +1498,40 @@
 
       renderDashboard(inc, exp, sav);
 
+      renderListMemberFilter();
       const txContainer = document.getElementById('txList');
-      if (filtered.length === 0) {
+      let listTransactions = state.transactions.filter(t => monthKey(t.date) === state.selectedMonth);
+      if (state.selectedListMemberFilter !== 'ALL') {
+        listTransactions = listTransactions.filter(t => t.person === state.selectedListMemberFilter);
+      }
+      // 날짜 내림차순 정렬: 최신 날짜가 위, 같은 날짜는 기존 등록 순서를 유지합니다.
+      listTransactions.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+      if (listTransactions.length === 0) {
         txContainer.innerHTML = `<p class="text-center text-slate-400 py-8 text-sm">등록된 거래 내역이 없습니다.</p>`;
       } else {
-        txContainer.innerHTML = filtered.map(t => {
+        let previousDate = null;
+        txContainer.innerHTML = listTransactions.map(t => {
+          const date = String(t.date || '');
+          const dateParts = date.split('-');
+          const dateLabel = dateParts.length === 3 ? `${Number(dateParts[1])}/${Number(dateParts[2])}` : date;
+          const dateDivider = date !== previousDate
+            ? `<div class="flex items-center gap-3 py-1.5"><span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span><span class="text-xs font-semibold text-slate-500 dark:text-slate-400">${dateLabel}</span><span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span></div>`
+            : '';
+          previousDate = date;
           const colorClass = t.type === '지출' ? 'text-rose-600' : t.type === '수입' ? 'text-emerald-600' : 'text-indigo-600';
           const prefix = t.type === '지출' ? '-' : '+';
-          return `
+          return `${dateDivider}
             <div class="bg-white dark:bg-slate-800 p-3.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between shadow-sm">
-              <div>
-                <div class="flex items-center gap-2">
-                  <span class="text-xs font-semibold px-2 py-0.5 rounded ${t.type === '지출' ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-300' : t.type === '수입' ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-300' : 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-300'}">${t.person}</span>
-                  <span class="tx-category-label font-bold text-sm">${t.subcategory}</span>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded shrink-0 ${t.type === '지출' ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-300' : t.type === '수입' ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-300' : 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-300'}">${escapeHtml(t.person || '')}</span>
+                  <span class="tx-category-label font-bold text-sm truncate">${escapeHtml(t.subcategory || '')}</span>
                 </div>
-                <div class="text-xs text-slate-400 mt-1">${t.date} · ${t.desc}</div>
+                <div class="text-xs text-slate-400 mt-1 truncate">${escapeHtml(t.desc || '')}</div>
               </div>
-              <div class="flex items-center gap-3">
-                <div class="tx-amount font-bold ${colorClass}">
-                  ${prefix}${t.amount.toLocaleString()}원
-                </div>
-                <button type="button" onclick="deleteTx(${JSON.stringify(t.id)})" class="text-slate-400 hover:text-rose-500 p-1 text-xs transition-colors">
-                  <i class="fa-solid fa-trash-can"></i>
-                </button>
+              <div class="flex items-center gap-3 shrink-0">
+                <div class="tx-amount font-bold ${colorClass}">${prefix}${Number(t.amount || 0).toLocaleString('ko-KR')}원</div>
+                <button type="button" onclick="deleteTx(${JSON.stringify(t.id)})" class="text-slate-400 hover:text-rose-500 p-1 text-xs transition-colors"><i class="fa-solid fa-trash-can"></i></button>
               </div>
             </div>
           `;
@@ -1479,17 +1564,108 @@
         const button = document.getElementById(id);
         if (button) button.textContent = formatRoundedManwon(total);
       });
+      renderFixedMonthlyBreakdown();
+    }
+
+    function renderFixedMonthlyBreakdown() {
+      const host = document.getElementById('fixedMonthlyBreakdown');
+      if (!host) return;
+      const types = [
+        { type: '수입', color: 'text-emerald-600 dark:text-emerald-300' },
+        { type: '지출', color: 'text-rose-600 dark:text-rose-300' },
+        { type: '저축', color: 'text-indigo-600 dark:text-indigo-300' }
+      ];
+      const active = window.activeFixedMonthlyBreakdown || '';
+      const getContent = item => String(item.desc || item.name || item.subcategory || '고정 내역').trim();
+      host.innerHTML = types.map(({ type, color }) => {
+        const grouped = new Map();
+        getCurrentMonthFixedItems(type).forEach(item => {
+          const content = getContent(item);
+          if (!grouped.has(content)) grouped.set(content, { content, total: 0, items: [] });
+          const group = grouped.get(content);
+          group.total += Number(item.displayAmount) || 0;
+          group.items.push(item);
+        });
+        const groups = [...grouped.values()].sort((a, b) => b.total - a.total || a.content.localeCompare(b.content, 'ko'));
+        if (!groups.length) return '';
+        return `<div class="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden"><div class="px-3 py-2 text-xs font-bold ${color} bg-slate-50 dark:bg-slate-900/40">${type} 항목</div>${groups.map(group => {
+          const key = `${type}::${group.content}`;
+          const isOpen = active === key;
+          const rows = [...group.items].sort((a, b) => { const dayA = Number(a.day) || 1; const dayB = Number(b.day) || 1; return dayA - dayB || String(a.person || '').localeCompare(String(b.person || ''), 'ko'); }).map(item => `<div class="flex items-center justify-between gap-3 px-3 py-2 text-xs sm:text-sm border-t border-slate-100 dark:border-slate-700"><div class="min-w-0 text-slate-500 dark:text-slate-400"><span>${escapeHtml(item.person || '공통')}</span><span class="mx-1">·</span><span>매월 ${Number(item.day) || 1}일</span></div><div class="font-semibold whitespace-nowrap ${color}">${Number(item.displayAmount || 0).toLocaleString('ko-KR')}원</div></div>`).join('');
+          return `<div><button type="button" aria-expanded="${isOpen}" onclick="toggleFixedMonthlyBreakdown(${JSON.stringify(key).replace(/</g, '\\u003c')})" class="w-full flex items-center justify-between gap-2 px-3 py-2.5 text-left"><span class="font-semibold text-sm text-slate-700 dark:text-slate-200">${escapeHtml(group.content)}</span><span class="flex items-center gap-2 shrink-0"><span class="font-bold text-sm ${color}">${Number(group.total).toLocaleString('ko-KR')}원</span><i class="fa-solid fa-chevron-${isOpen ? 'up' : 'down'} text-xs text-slate-400"></i></span></button>${isOpen ? `<div>${rows}</div>` : ''}</div>`;
+        }).join('')}</div>`;
+      }).join('');
+    }
+
+    function toggleFixedMonthlyBreakdown(key) {
+      window.activeFixedMonthlyBreakdown = window.activeFixedMonthlyBreakdown === key ? '' : key;
+      renderFixedMonthlyBreakdown();
+    }
+
+    function renderFixedMonthlyDetailMemberFilter() {
+      const container = document.getElementById('fixedMonthlyDetailMemberFilter');
+      if (!container) return;
+      if (state.selectedFixedDetailMemberFilter !== 'ALL' && !state.members.includes(state.selectedFixedDetailMemberFilter)) {
+        state.selectedFixedDetailMemberFilter = 'ALL';
+      }
+      const options = ['ALL', ...state.members];
+      container.innerHTML = options.map(member => {
+        const selected = state.selectedFixedDetailMemberFilter === member;
+        const label = member === 'ALL' ? '전체' : escapeHtml(member);
+        const value = JSON.stringify(member).replace(/</g, '\u003c');
+        return `<button type="button" onclick='setFixedDetailMemberFilter(${value})' class="px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all ${selected ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">${label}</button>`;
+      }).join('');
+    }
+
+    function setFixedDetailMemberFilter(member) {
+      state.selectedFixedDetailMemberFilter = member;
+      renderFixedMonthlyDetailMemberFilter();
+      renderFixedMonthlyDetailsList();
+    }
+
+    function renderFixedMonthlyDetailsList() {
+      const type = state.activeFixedDetailType || '지출';
+      const items = getCurrentMonthFixedItems(type).filter(item => state.selectedFixedDetailMemberFilter === 'ALL' || item.person === state.selectedFixedDetailMemberFilter);
+      const colors = { '수입': 'text-emerald-600', '지출': 'text-rose-600', '저축': 'text-indigo-600' };
+      const host = document.getElementById('fixedMonthlyDetailList');
+      const monthNumber = Number((state.selectedMonth || currentMonthKey()).split('-')[1]);
+      const getContent = item => String(item.desc || item.name || item.subcategory || '고정 내역').trim();
+      const grouped = new Map();
+      items.forEach(item => {
+        const content = getContent(item);
+        if (!grouped.has(content)) grouped.set(content, { content, total: 0, items: [] });
+        const group = grouped.get(content);
+        group.total += Number(item.displayAmount) || 0;
+        group.items.push(item);
+      });
+      const groups = [...grouped.values()].map(group => {
+        group.items.sort((a, b) => (Number(a.day) || 1) - (Number(b.day) || 1) || String(a.person || '').localeCompare(String(b.person || ''), 'ko'));
+        group.firstDay = Math.min(...group.items.map(item => Number(item.day) || 1));
+        return group;
+      }).sort((a, b) => a.firstDay - b.firstDay || a.content.localeCompare(b.content, 'ko'));
+
+      if (!groups.length) {
+        host.innerHTML = '<p class="text-center text-sm text-slate-400 py-6">선택한 구성원의 이번 달 내역이 없습니다.</p>';
+      } else {
+        host.innerHTML = groups.map(group => {
+          const rows = group.items.map(item => {
+            const day = Number(item.day) || 1;
+            return `<div class="flex items-center justify-between gap-3 pl-3 py-1.5 border-l-2 border-slate-200 dark:border-slate-600"><div class="min-w-0 text-xs sm:text-sm text-slate-600 dark:text-slate-300"><span class="font-semibold">${escapeHtml(item.person || '공통')}</span><span class="mx-1">·</span><span>매월 ${day}일</span></div><div class="font-semibold text-xs sm:text-sm whitespace-nowrap ${colors[type]}">${Number(item.displayAmount || 0).toLocaleString('ko-KR')}원</div></div>`;
+          }).join('');
+          return `<section class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2"><div class="fixed-detail-group-heading"><div class="fixed-detail-group-name">${escapeHtml(group.content)}</div><div class="fixed-detail-group-total ${colors[type]}">총 ${Number(group.total).toLocaleString('ko-KR')}원</div></div><div class="space-y-1">${rows}</div></section>`;
+        }).join('');
+      }
+      const detailTotal = items.reduce((sum, item) => sum + item.displayAmount, 0);
+      document.getElementById('fixedMonthlyDetailTotal').textContent = Number(detailTotal).toLocaleString('ko-KR') + '원';
     }
 
     function openFixedMonthlyDetails(type) {
-      const items = getCurrentMonthFixedItems(type);
-      const colors = { '수입': 'text-emerald-600', '지출': 'text-rose-600', '저축': 'text-indigo-600' };
+      state.activeFixedDetailType = type;
+      state.selectedFixedDetailMemberFilter = 'ALL';
       const [detailYear, detailMonth] = (state.selectedMonth || currentMonthKey()).split('-');
       document.getElementById('fixedMonthlyDetailTitle').textContent = `${String(detailYear).slice(-2)}.${String(detailMonth).padStart(2, '0')} 고정 ${type} 내역`;
-      const host = document.getElementById('fixedMonthlyDetailList');
-      host.innerHTML = items.length ? items.map(item => `<div class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-3"><div class="min-w-0"><div class="font-semibold truncate">${escapeHtml(item.desc || item.name || item.subcategory || '고정 내역')}</div><div class="text-xs text-slate-500">${escapeHtml(item.person || '')} · ${escapeHtml(item.subcategory || '')} · 매월 ${Number(item.day) || 1}일</div></div><div class="font-bold whitespace-nowrap ${colors[type]}">${formatRoundedManwon(item.displayAmount)}</div></div>`).join('') : '<p class="text-center text-sm text-slate-400 py-6">이번 달 등록된 고정 내역이 없습니다.</p>';
-      const detailTotal = items.reduce((sum, item) => sum + item.displayAmount, 0);
-      document.getElementById('fixedMonthlyDetailTotal').textContent = formatRoundedManwon(detailTotal);
+      renderFixedMonthlyDetailMemberFilter();
+      renderFixedMonthlyDetailsList();
       openModal('modalFixedMonthlyDetails');
     }
 
@@ -1557,7 +1733,7 @@
             </div>
 
             <div class="space-y-3 pl-1">
-              ${Object.keys(subGroup).map((sub, sIdx) => {
+              ${Object.keys(subGroup).sort((a, b) => (Number(subGroup[b].total) - Number(subGroup[a].total)) || a.localeCompare(b, 'ko')).map((sub, sIdx) => {
                 const subObj = subGroup[sub];
                 const subPctOfTotal = Math.round((subObj.total / typeTotal) * 100);
                 const subAccordionId = `acc_${type}_sub_${sIdx}`;
@@ -1581,52 +1757,13 @@
                     <div id="${subAccordionId}" class="hidden bg-white dark:bg-slate-800/80 p-3 border-t border-slate-200/50 dark:border-slate-700 space-y-3 text-xs">
                       
                       <div class="space-y-2">
-                        <div class="font-semibold text-slate-500 mb-1">📌 내용별 구성비</div>
-                        ${Object.keys(subObj.descs).map((desc, dIdx) => {
-                          const descObj = subObj.descs[desc];
-                          const descPctOfSub = Math.round((descObj.total / subObj.total) * 100);
-                          const descAccordionId = `${subAccordionId}_desc_${dIdx}`;
-
-                          return `
-                            <div class="bg-slate-50 dark:bg-slate-700/30 rounded-lg p-2 border border-slate-100 dark:border-slate-700">
-                              <div onclick="toggleAccordion('${descAccordionId}')" class="flex justify-between items-center cursor-pointer font-medium">
-                                <span class="flex items-center gap-1">
-                                  <i class="fa-solid fa-caret-right text-slate-400" id="${descAccordionId}_icon"></i>
-                                  ${desc}
-                                  <span class="text-[10px] text-slate-400">(${sub}의 ${descPctOfSub}%)</span>
-                                </span>
-                                <span class="font-bold text-slate-700 dark:text-slate-200">${descObj.total.toLocaleString()}원</span>
-                              </div>
-
-                              <div id="${descAccordionId}" class="hidden mt-2 pt-2 border-t border-slate-200 dark:border-slate-600 space-y-1.5 pl-2">
-                                ${descObj.txs.map(tx => `
-                                  <div class="flex justify-between items-center text-[11px] text-slate-500 dark:text-slate-400">
-                                    <span>${tx.date} · <strong class="text-slate-700 dark:text-slate-300">${tx.person}</strong></span>
-                                    <span class="font-semibold">${tx.amount.toLocaleString()}원</span>
-                                  </div>
-                                `).join('')}
-                              </div>
-                            </div>
-                          `;
-                        }).join('')}
-                      </div>
-
-                      <div class="pt-2 border-t border-slate-100 dark:border-slate-700">
-                        <div class="font-semibold text-slate-500 mb-1.5">📋 '${sub}' 거래 내역 목록</div>
-                        <div class="space-y-1">
-                          ${subObj.txs.map(tx => `
-                            <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-700/50 p-2 rounded-lg text-[11px]">
-                              <div>
-                                <span class="font-semibold text-slate-700 dark:text-slate-200">${tx.date}</span>
-                                <span class="text-slate-400 mx-1">|</span>
-                                <span class="text-indigo-600 dark:text-indigo-400 font-medium">${tx.person}</span>
-                                <span class="text-slate-400 mx-1">|</span>
-                                <span class="text-slate-600 dark:text-slate-300">${tx.desc}</span>
-                              </div>
-                              <span class="font-bold text-slate-800 dark:text-slate-100">${tx.amount.toLocaleString()}원</span>
-                            </div>
-                          `).join('')}
-                        </div>
+                        <div class="font-semibold text-slate-500 mb-1">📋 내용별 목록</div>
+                        ${[...subObj.txs].sort((a, b) => new Date(a.date) - new Date(b.date)).map(tx => `
+                          <div class="flex justify-between items-center gap-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700 last:border-0">
+                            <span class="min-w-0">${tx.date} · <strong class="text-slate-700 dark:text-slate-300">${tx.person}</strong>${tx.desc ? ` · ${tx.desc}` : ''}</span>
+                            <span class="shrink-0 font-semibold">${tx.amount.toLocaleString()}원</span>
+                          </div>
+                        `).join('')}
                       </div>
 
                     </div>
