@@ -293,6 +293,48 @@
   /* 핵심 거래 항목명은 14px 유지 */
   #tabContentList .tx-category-label { font-size:14px !important; }
 </style>
+
+<style id="responsive-safety-fixes">
+  /* 월별 추이 SVG는 부모 너비에 맞춰 축소하고 가로 스크롤을 만들지 않습니다. */
+  #monthlyTrendChart { width:100%; min-width:0; max-width:100%; overflow:hidden; }
+  #monthlyTrendChart svg { display:block; width:100%; max-width:100%; height:auto; }
+  /* 고정 내역 펼침 행: 구성원/결제일 정보는 필요한 경우 줄바꿈하고 금액은 한 줄 유지 */
+  #fixedMonthlyBreakdown > div { min-width:0; max-width:100%; }
+  #fixedMonthlyBreakdown button { min-width:0; max-width:100%; }
+  #fixedMonthlyBreakdown button > span:first-child { min-width:0; flex:1 1 auto; overflow-wrap:anywhere; }
+  #fixedMonthlyBreakdown button > span:last-child { flex:0 0 auto; white-space:nowrap; }
+  #fixedMonthlyBreakdown .bg-slate-50\/70 > div { min-width:0; }
+  #fixedMonthlyBreakdown .bg-slate-50\/70 > div > div:first-child { min-width:0; flex:1 1 auto; overflow-wrap:anywhere; word-break:keep-all; }
+  #fixedMonthlyBreakdown .bg-slate-50\/70 > div > div:last-child { flex:0 0 auto; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  @media (max-width:380px) {
+    #fixedMonthlyBreakdown button { gap:6px; padding-left:9px; padding-right:9px; }
+    #fixedMonthlyBreakdown button > span:first-child { gap:5px; }
+    #fixedMonthlyBreakdown button > span:first-child > span:first-child { font-size:12px; }
+    #fixedMonthlyBreakdown button > span:last-child { gap:5px; }
+    #fixedMonthlyBreakdown button > span:last-child > span { font-size:12px; }
+    #fixedMonthlyBreakdown .bg-slate-50\/70 > div { gap:6px; padding-left:9px; padding-right:9px; }
+    #fixedMonthlyBreakdown .bg-slate-50\/70 > div > div:last-child { font-size:11px; }
+    #monthlyTrendChart text { font-size:10px; }
+  }
+</style>
+
+
+<style id="mobile-netlify-badge-clearance">
+  /* 모바일 하단 Netlify 배지가 화면 내용과 모달을 가리지 않도록 44px 확보 */
+  @media (max-width: 767px) {
+    body { padding-bottom: 44px !important; }
+    /* 전체 화면 팝업과 하단 시트의 표시 영역을 배지 위에서 끝냅니다. */
+    body > .fixed.inset-0 { bottom: 44px !important; }
+    /* 팝업 안에서 스크롤하는 목록/폼에도 마지막 44px 여유 공간 확보 */
+    body > .fixed.inset-0 > div {
+      scroll-padding-bottom: 44px;
+    }
+    body > .fixed.inset-0 > div.overflow-y-auto,
+    body > .fixed.inset-0 > div[class*="max-h-"] {
+      padding-bottom: calc(1.25rem + 44px);
+    }
+  }
+</style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
 
@@ -420,7 +462,7 @@
       <!-- [탭 1] 대시보드 -->
       <section id="tabContentDashboard" class="space-y-6">
         <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-3">
-          <div class="flex items-center justify-between"><h3 class="text-base sm:text-lg font-bold">이번 달 고정 내역</h3></div>
+          <div class="flex items-center justify-between gap-3"><h3 class="text-base sm:text-lg font-bold">이번 달 고정 내역</h3><div class="text-sm sm:text-base font-extrabold text-slate-700 dark:text-slate-100 whitespace-nowrap">총 <span id="fixedMonthlyGrandTotal">0원</span></div></div>
           <div class="text-[11px] text-slate-400 -mt-2">항목을 누르면 상세 내역</div>
           <div class="grid grid-cols-3 gap-2 text-center">
             <div class="rounded-xl bg-emerald-50 dark:bg-emerald-950/20 p-3"><div class="text-xs font-semibold text-emerald-600 mb-1">수입</div><button type="button" id="fixedMonthlyIncome" onclick="openFixedMonthlyDetails('수입')" class="font-bold text-sm text-emerald-700 dark:text-emerald-300 underline underline-offset-2">0원</button></div>
@@ -433,6 +475,17 @@
           <h3 class="text-base sm:text-lg font-bold">기간별 수입·지출·저축 요약</h3>
           <div id="periodComparisons" class="space-y-2 text-base sm:text-lg"></div>
           <style>#periodComparisons, #periodComparisons * { font-size: inherit !important; }</style>
+        </div>
+        <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-3">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <h3 class="text-base sm:text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-chart-line text-indigo-500"></i> 월별 추이</h3>
+            <div class="flex items-center gap-3 text-xs font-semibold" aria-label="그래프 범례">
+              <span class="flex items-center gap-1 text-emerald-600"><i class="fa-solid fa-circle text-[7px]"></i>수입</span>
+              <span class="flex items-center gap-1 text-rose-500"><i class="fa-solid fa-circle text-[7px]"></i>지출</span>
+              <span class="flex items-center gap-1 text-indigo-500"><i class="fa-solid fa-circle text-[7px]"></i>저축</span>
+            </div>
+          </div>
+          <div id="monthlyTrendChart" class="w-full overflow-hidden" role="img" aria-label="최근 8개월 수입, 지출, 저축 월별 추이"></div>
         </div>
 
       </section>
@@ -1570,31 +1623,46 @@
     function renderFixedMonthlyBreakdown() {
       const host = document.getElementById('fixedMonthlyBreakdown');
       if (!host) return;
-      const types = [
-        { type: '수입', color: 'text-emerald-600 dark:text-emerald-300' },
-        { type: '지출', color: 'text-rose-600 dark:text-rose-300' },
-        { type: '저축', color: 'text-indigo-600 dark:text-indigo-300' }
-      ];
+      const typeStyles = {
+        '수입': 'text-emerald-600 dark:text-emerald-300',
+        '지출': 'text-rose-600 dark:text-rose-300',
+        '저축': 'text-indigo-600 dark:text-indigo-300'
+      };
       const active = window.activeFixedMonthlyBreakdown || '';
       const getContent = item => String(item.desc || item.name || item.subcategory || '고정 내역').trim();
-      host.innerHTML = types.map(({ type, color }) => {
-        const grouped = new Map();
-        getCurrentMonthFixedItems(type).forEach(item => {
-          const content = getContent(item);
-          if (!grouped.has(content)) grouped.set(content, { content, total: 0, items: [] });
-          const group = grouped.get(content);
-          group.total += Number(item.displayAmount) || 0;
-          group.items.push(item);
-        });
-        const groups = [...grouped.values()].sort((a, b) => b.total - a.total || a.content.localeCompare(b.content, 'ko'));
-        if (!groups.length) return '';
-        return `<div class="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden"><div class="px-3 py-2 text-xs font-bold ${color} bg-slate-50 dark:bg-slate-900/40">${type} 항목</div>${groups.map(group => {
-          const key = `${type}::${group.content}`;
-          const isOpen = active === key;
-          const rows = [...group.items].sort((a, b) => { const dayA = Number(a.day) || 1; const dayB = Number(b.day) || 1; return dayA - dayB || String(a.person || '').localeCompare(String(b.person || ''), 'ko'); }).map(item => `<div class="flex items-center justify-between gap-3 px-3 py-2 text-xs sm:text-sm border-t border-slate-100 dark:border-slate-700"><div class="min-w-0 text-slate-500 dark:text-slate-400"><span>${escapeHtml(item.person || '공통')}</span><span class="mx-1">·</span><span>매월 ${Number(item.day) || 1}일</span></div><div class="font-semibold whitespace-nowrap ${color}">${Number(item.displayAmount || 0).toLocaleString('ko-KR')}원</div></div>`).join('');
-          return `<div><button type="button" aria-expanded="${isOpen}" onclick="toggleFixedMonthlyBreakdown(${JSON.stringify(key).replace(/</g, '\\u003c')})" class="w-full flex items-center justify-between gap-2 px-3 py-2.5 text-left"><span class="font-semibold text-sm text-slate-700 dark:text-slate-200">${escapeHtml(group.content)}</span><span class="flex items-center gap-2 shrink-0"><span class="font-bold text-sm ${color}">${Number(group.total).toLocaleString('ko-KR')}원</span><i class="fa-solid fa-chevron-${isOpen ? 'up' : 'down'} text-xs text-slate-400"></i></span></button>${isOpen ? `<div>${rows}</div>` : ''}</div>`;
-        }).join('')}</div>`;
-      }).join('');
+      const allItems = ['수입', '지출', '저축'].flatMap(type =>
+        getCurrentMonthFixedItems(type).map(item => ({ ...item, type }))
+      );
+      const grandTotal = allItems.reduce((sum, item) => sum + (Number(item.displayAmount) || 0), 0);
+      const totalEl = document.getElementById('fixedMonthlyGrandTotal');
+      if (totalEl) totalEl.textContent = Number(grandTotal).toLocaleString('ko-KR') + '원';
+
+      const grouped = new Map();
+      allItems.forEach(item => {
+        const content = getContent(item);
+        const key = `${item.type}::${content}`;
+        if (!grouped.has(key)) grouped.set(key, { key, type: item.type, content, total: 0, items: [] });
+        const group = grouped.get(key);
+        group.total += Number(item.displayAmount) || 0;
+        group.items.push(item);
+      });
+      const groups = [...grouped.values()].sort((a, b) =>
+        b.total - a.total || a.content.localeCompare(b.content, 'ko') || a.type.localeCompare(b.type, 'ko')
+      );
+      if (!groups.length) {
+        host.innerHTML = '<p class="text-center text-xs text-slate-400 py-3">등록된 고정 내역이 없습니다.</p>';
+        return;
+      }
+      host.innerHTML = `<div class="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">${groups.map(group => {
+        const isOpen = active === group.key;
+        const color = typeStyles[group.type] || 'text-slate-600 dark:text-slate-300';
+        const rows = [...group.items].sort((a, b) => {
+          const dayA = Number(a.day) || 1;
+          const dayB = Number(b.day) || 1;
+          return dayA - dayB || String(a.person || '공통').localeCompare(String(b.person || '공통'), 'ko');
+        }).map(item => `<div class="flex items-center justify-between gap-3 px-3 py-2 text-xs sm:text-sm border-t border-slate-100 dark:border-slate-700"><div class="min-w-0 text-slate-500 dark:text-slate-400"><span class="font-semibold">${escapeHtml(item.person || '공통')}</span><span class="mx-1">·</span><span>매월 ${Number(item.day) || 1}일</span><span class="mx-1">·</span><span>${item.type}</span></div><div class="font-semibold whitespace-nowrap ${color}">${Number(item.displayAmount || 0).toLocaleString('ko-KR')}원</div></div>`).join('');
+        return `<div class="border-b last:border-b-0 border-slate-100 dark:border-slate-700"><button type="button" aria-expanded="${isOpen}" onclick="toggleFixedMonthlyBreakdown(${JSON.stringify(group.key).replace(/</g, '\\u003c')})" class="w-full flex items-center justify-between gap-2 px-3 py-3 text-left"><span class="min-w-0 flex items-center gap-2"><span class="font-semibold text-sm text-slate-700 dark:text-slate-200">${escapeHtml(group.content)}</span><span class="text-[10px] font-bold ${color}">${group.type}</span></span><span class="flex items-center gap-2 shrink-0"><span class="font-bold text-sm ${color}">${Number(group.total).toLocaleString('ko-KR')}원</span><i class="fa-solid fa-chevron-${isOpen ? 'up' : 'down'} text-xs text-slate-400"></i></span></button>${isOpen ? `<div class="bg-slate-50/70 dark:bg-slate-900/30">${rows}</div>` : ''}</div>`;
+      }).join('')}</div>`;
     }
 
     function toggleFixedMonthlyBreakdown(key) {
@@ -1670,9 +1738,50 @@
     }
 
     function renderDashboard(inc, exp, sav) {
-      // 대시보드의 고정 내역 요약만 갱신합니다.
-      // 삭제된 자산 사용 현황 UI 요소를 참조하지 않도록 합니다.
+      // 대시보드 고정 내역과 월별 수입·지출·저축 추이를 함께 갱신합니다.
       renderFixedMonthlySummary();
+      renderMonthlyTrendChart();
+    }
+
+    function renderMonthlyTrendChart() {
+      const host = document.getElementById('monthlyTrendChart');
+      if (!host) return;
+      const selected = (state.selectedMonth || currentMonthKey()).split('-').map(Number);
+      const end = new Date(selected[0], selected[1] - 1, 1);
+      const months = [];
+      for (let i = 7; i >= 0; i--) {
+        const d = new Date(end.getFullYear(), end.getMonth() - i, 1);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        const totals = { inc: 0, exp: 0, sav: 0 };
+        state.transactions.forEach(t => {
+          if (monthKey(t.date) !== key) return;
+          if (state.selectedMemberFilter !== 'ALL' && t.person !== state.selectedMemberFilter) return;
+          if (t.type === '수입') totals.inc += Number(t.amount) || 0;
+          else if (t.type === '지출') totals.exp += Number(t.amount) || 0;
+          else if (t.type === '저축') totals.sav += Number(t.amount) || 0;
+        });
+        months.push({ key, label: `${d.getMonth() + 1}월`, ...totals });
+      }
+      const width = 640, height = 220, left = 48, right = 14, top = 14, bottom = 34;
+      const plotW = width - left - right, plotH = height - top - bottom;
+      const maxVal = Math.max(1, ...months.flatMap(m => [m.inc, m.exp, m.sav]));
+      const niceMax = Math.ceil(maxVal / 500000) * 500000 || 500000;
+      const x = i => left + (plotW * i / (months.length - 1));
+      const y = v => top + plotH - (v / niceMax) * plotH;
+      const fmt = v => v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : `${Math.round(v / 10000)}만`;
+      const series = [
+        { key: 'inc', color: '#10b981', label: '수입' },
+        { key: 'exp', color: '#f43f5e', label: '지출' },
+        { key: 'sav', color: '#6366f1', label: '저축' }
+      ];
+      const grid = [0, .5, 1].map(r => { const yy = top + plotH * (1-r); return `<line x1="${left}" y1="${yy}" x2="${width-right}" y2="${yy}" stroke="currentColor" opacity=".12" stroke-dasharray="3 4"/><text x="${left-8}" y="${yy+4}" text-anchor="end" fill="currentColor" opacity=".65" font-size="11">${fmt(niceMax*r)}</text>`; }).join('');
+      const lines = series.map(ser => {
+        const pts = months.map((m,i) => `${x(i)},${y(m[ser.key])}`).join(' ');
+        const dots = months.map((m,i) => `<circle cx="${x(i)}" cy="${y(m[ser.key])}" r="3.5" fill="${ser.color}" stroke="white" stroke-width="1.5"><title>${m.label} ${ser.label}: ${Number(m[ser.key]).toLocaleString('ko-KR')}원</title></circle>`).join('');
+        return `<polyline points="${pts}" fill="none" stroke="${ser.color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${dots}`;
+      }).join('');
+      const labels = months.map((m,i) => `<text x="${x(i)}" y="${height-9}" text-anchor="middle" fill="currentColor" opacity=".75" font-size="11">${m.label}</text>`).join('');
+      host.innerHTML = `<svg viewBox="0 0 ${width} ${height}" class="block w-full" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${grid}${lines}${labels}</svg>`;
     }
 
     function renderStats(list, totalInc, totalExp, totalSav) {
