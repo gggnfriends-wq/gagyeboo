@@ -319,22 +319,52 @@
 </style>
 
 
-<style id="mobile-netlify-badge-clearance">
-  /* 모바일 하단 Netlify 배지가 화면 내용과 모달을 가리지 않도록 44px 확보 */
-  @media (max-width: 767px) {
-    body { padding-bottom: 44px !important; }
-    /* 전체 화면 팝업과 하단 시트의 표시 영역을 배지 위에서 끝냅니다. */
-    body > .fixed.inset-0 { bottom: 44px !important; }
-    /* 팝업 안에서 스크롤하는 목록/폼에도 마지막 44px 여유 공간 확보 */
-    body > .fixed.inset-0 > div {
-      scroll-padding-bottom: 44px;
-    }
-    body > .fixed.inset-0 > div.overflow-y-auto,
-    body > .fixed.inset-0 > div[class*="max-h-"] {
-      padding-bottom: calc(1.25rem + 44px);
-    }
-  }
+<style id="dashboard-reference-design">
+/* 대시보드 전용: 제공된 참고 이미지의 네이비 카드 UI */
+.dark body { background: radial-gradient(ellipse at 50% -15%, #263c70 0%, #111a30 46%, #0b1222 100%) !important; }
+#tabContentDashboard { gap:16px !important; }
+#tabContentDashboard > div { background:linear-gradient(145deg,#26344e 0%,#1b2940 100%) !important; border:1px solid #405474 !important; border-radius:22px !important; box-shadow:0 8px 22px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.05) !important; padding:16px !important; }
+.dark #tabContentDashboard h3 { color:#f3f6ff !important; font-size:clamp(17px,4.4vw,22px) !important; font-weight:800 !important; letter-spacing:-.04em; }
+.dark #periodComparisons { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px !important; }
+.dark #periodComparisons > .rounded-xl { min-width:0; border:1px solid #405474; border-radius:18px; background:linear-gradient(145deg,#25344f,#1b2940) !important; padding:13px !important; }
+.dark #periodComparisons > .rounded-xl:first-child { grid-column:1 / -1; background:linear-gradient(120deg,#203d70,#293b63) !important; border-color:#4269a6; }
+.dark #periodComparisons > .rounded-xl:first-child > div:first-child { font-size:18px !important; color:#f4f7ff; }
+.dark #periodComparisons > .rounded-xl:first-child .grid { gap:9px !important; }
+.dark #periodComparisons > .rounded-xl:first-child .grid > div { border:1px solid rgba(133,169,230,.35); border-radius:15px; padding:14px 5px !important; background:rgba(12,31,62,.38) !important; }
+.dark #periodComparisons > .rounded-xl:first-child .summary-amount { font-size:clamp(15px,4.1vw,22px) !important; color:#fff !important; }
+.dark #periodComparisons > .rounded-xl:first-child .grid > div:nth-child(1) { background:linear-gradient(145deg,#244f91,#1e3d70) !important; }
+.dark #periodComparisons > .rounded-xl:first-child .grid > div:nth-child(2) { background:linear-gradient(145deg,#71365f,#482944) !important; }
+.dark #periodComparisons > .rounded-xl:first-child .grid > div:nth-child(3) { background:linear-gradient(145deg,#17665b,#164b49) !important; }
+.dark #periodComparisons > .rounded-xl:not(:first-child) > div:first-child { color:#f1f5ff; font-size:15px !important; margin-bottom:10px !important; }
+.dark #periodComparisons > .rounded-xl:not(:first-child) .space-y-2\.5 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; }
+.dark #periodComparisons > .rounded-xl:not(:first-child) .space-y-2\.5 > div { display:flex; flex-direction:column; align-items:center !important; text-align:center; border-right:1px solid #455675; padding:0 3px; gap:4px !important; }
+.dark #periodComparisons > .rounded-xl:not(:first-child) .space-y-2\.5 > div:last-child { border-right:0; }
+.dark #periodComparisons .summary-amount { font-size:clamp(11px,3vw,16px) !important; }
+.dark #periodComparisons .text-\[10px\] { font-size:10px !important; }
+.dark #tabContentDashboard > div:has(#fixedMonthlyBreakdown) h3 { font-size:20px !important; }
+.dark #fixedMonthlyBreakdown > .rounded-xl { border:0 !important; border-radius:0 !important; background:transparent !important; overflow:visible !important; }
+.dark #fixedMonthlyBreakdown > .rounded-xl > div { border-color:#405474 !important; }
+.dark #fixedMonthlyBreakdown button { min-height:48px; padding:10px 4px !important; }
+.dark #fixedMonthlyBreakdown button .font-semibold { color:#f4f6ff !important; font-size:15px !important; }
+.dark #fixedMonthlyBreakdown button .font-bold { color:#f4f6ff !important; font-size:15px !important; }
+.dark #fixedMonthlyBreakdown button .text-rose-600, .dark #fixedMonthlyBreakdown button .text-rose-300 { color:#ff315b !important; }
+.dark #fixedMonthlyBreakdown button .text-emerald-600, .dark #fixedMonthlyBreakdown button .text-emerald-300 { color:#54d6a3 !important; }
+.dark #fixedMonthlyBreakdown button .text-indigo-600, .dark #fixedMonthlyBreakdown button .text-indigo-300 { color:#a78bfa !important; }
+.dark #fixedMonthlyBreakdown .bg-slate-50\/70 { background:rgba(8,17,33,.28) !important; }
+.dark #tabContentDashboard #monthlyTrendChart { min-height:160px; }
+.dark #tabContentDashboard #monthlyTrendChart svg { max-width:100%; height:auto; }
+.dark #tabContentDashboard .text-slate-400 { color:#b5c4df !important; }
+@media(max-width:520px) {
+  #tabContentDashboard { gap:14px !important; }
+  #tabContentDashboard > div { padding:13px !important; border-radius:19px !important; }
+  .dark #periodComparisons { gap:9px !important; }
+  .dark #periodComparisons > .rounded-xl:not(:first-child) { padding:10px 7px !important; }
+  .dark #periodComparisons > .rounded-xl:not(:first-child) .space-y-2\.5 { grid-template-columns:1fr; gap:7px; }
+  .dark #periodComparisons > .rounded-xl:not(:first-child) .space-y-2\.5 > div { flex-direction:row; justify-content:space-between; border-right:0; border-bottom:1px solid #405474; padding:4px 0 7px; text-align:left; }
+  .dark #periodComparisons > .rounded-xl:not(:first-child) .space-y-2\.5 > div:last-child { border-bottom:0; }
+}
 </style>
+
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
 
@@ -460,21 +490,21 @@
       </div>
 
       <!-- [탭 1] 대시보드 -->
-      <section id="tabContentDashboard" class="space-y-6">
-        <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-3">
-          <div class="flex items-center justify-between gap-3"><h3 class="text-base sm:text-lg font-bold">이번 달 고정 내역</h3><div class="text-sm sm:text-base font-extrabold text-slate-700 dark:text-slate-100 whitespace-nowrap">총 <span id="fixedMonthlyGrandTotal">0원</span></div></div>
-          <div class="text-[11px] text-slate-400 -mt-2">항목을 누르면 상세 내역</div>
-          <div class="grid grid-cols-3 gap-2 text-center">
-            <div class="rounded-xl bg-emerald-50 dark:bg-emerald-950/20 p-3"><div class="text-xs font-semibold text-emerald-600 mb-1">수입</div><button type="button" id="fixedMonthlyIncome" onclick="openFixedMonthlyDetails('수입')" class="font-bold text-sm text-emerald-700 dark:text-emerald-300 underline underline-offset-2">0원</button></div>
-            <div class="rounded-xl bg-rose-50 dark:bg-rose-950/20 p-3"><div class="text-xs font-semibold text-rose-600 mb-1">지출</div><button type="button" id="fixedMonthlyExpense" onclick="openFixedMonthlyDetails('지출')" class="font-bold text-sm text-rose-700 dark:text-rose-300 underline underline-offset-2">0원</button></div>
-            <div class="rounded-xl bg-indigo-50 dark:bg-indigo-950/20 p-3"><div class="text-xs font-semibold text-indigo-600 mb-1">저축</div><button type="button" id="fixedMonthlySaving" onclick="openFixedMonthlyDetails('저축')" class="font-bold text-sm text-indigo-700 dark:text-indigo-300 underline underline-offset-2">0원</button></div>
-          </div>
-          <div id="fixedMonthlyBreakdown" class="space-y-3"></div>
-        </div>
+      <section id="tabContentDashboard" class="space-y-6 pb-[44px]">
         <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-3">
           <h3 class="text-base sm:text-lg font-bold">기간별 수입·지출·저축 요약</h3>
           <div id="periodComparisons" class="space-y-2 text-base sm:text-lg"></div>
           <style>#periodComparisons, #periodComparisons * { font-size: inherit !important; }</style>
+        </div>
+        <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-3">
+          <button type="button" onclick="toggleFixedMonthlySection()" class="w-full flex items-center justify-between gap-3 text-left" aria-controls="fixedMonthlyContent" aria-expanded="false" id="fixedMonthlySectionToggle">
+            <h3 class="text-base sm:text-lg font-bold">이번 달 고정 지출 내역</h3>
+            <span class="flex items-center gap-2 text-sm sm:text-base font-extrabold text-slate-700 dark:text-slate-100 whitespace-nowrap">총 <span id="fixedMonthlyGrandTotal">0원</span><i id="fixedMonthlySectionChevron" class="fa-solid fa-chevron-down text-xs text-slate-400"></i></span>
+          </button>
+          <div id="fixedMonthlyContent" class="hidden space-y-3">
+            <div class="text-[11px] text-slate-400">항목을 누르면 구성원·결제일·금액을 확인할 수 있습니다.</div>
+            <div id="fixedMonthlyBreakdown" class="space-y-3"></div>
+          </div>
         </div>
         <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm space-y-3">
           <div class="flex items-center justify-between gap-2 flex-wrap">
@@ -1630,9 +1660,7 @@
       };
       const active = window.activeFixedMonthlyBreakdown || '';
       const getContent = item => String(item.desc || item.name || item.subcategory || '고정 내역').trim();
-      const allItems = ['수입', '지출', '저축'].flatMap(type =>
-        getCurrentMonthFixedItems(type).map(item => ({ ...item, type }))
-      );
+      const allItems = getCurrentMonthFixedItems('지출').map(item => ({ ...item, type: '지출' }));
       const grandTotal = allItems.reduce((sum, item) => sum + (Number(item.displayAmount) || 0), 0);
       const totalEl = document.getElementById('fixedMonthlyGrandTotal');
       if (totalEl) totalEl.textContent = Number(grandTotal).toLocaleString('ko-KR') + '원';
@@ -1663,6 +1691,17 @@
         }).map(item => `<div class="flex items-center justify-between gap-3 px-3 py-2 text-xs sm:text-sm border-t border-slate-100 dark:border-slate-700"><div class="min-w-0 text-slate-500 dark:text-slate-400"><span class="font-semibold">${escapeHtml(item.person || '공통')}</span><span class="mx-1">·</span><span>매월 ${Number(item.day) || 1}일</span><span class="mx-1">·</span><span>${item.type}</span></div><div class="font-semibold whitespace-nowrap ${color}">${Number(item.displayAmount || 0).toLocaleString('ko-KR')}원</div></div>`).join('');
         return `<div class="border-b last:border-b-0 border-slate-100 dark:border-slate-700"><button type="button" aria-expanded="${isOpen}" onclick="toggleFixedMonthlyBreakdown(${JSON.stringify(group.key).replace(/</g, '\\u003c')})" class="w-full flex items-center justify-between gap-2 px-3 py-3 text-left"><span class="min-w-0 flex items-center gap-2"><span class="font-semibold text-sm text-slate-700 dark:text-slate-200">${escapeHtml(group.content)}</span><span class="text-[10px] font-bold ${color}">${group.type}</span></span><span class="flex items-center gap-2 shrink-0"><span class="font-bold text-sm ${color}">${Number(group.total).toLocaleString('ko-KR')}원</span><i class="fa-solid fa-chevron-${isOpen ? 'up' : 'down'} text-xs text-slate-400"></i></span></button>${isOpen ? `<div class="bg-slate-50/70 dark:bg-slate-900/30">${rows}</div>` : ''}</div>`;
       }).join('')}</div>`;
+    }
+
+    function toggleFixedMonthlySection() {
+      const content = document.getElementById('fixedMonthlyContent');
+      const button = document.getElementById('fixedMonthlySectionToggle');
+      const chevron = document.getElementById('fixedMonthlySectionChevron');
+      if (!content || !button) return;
+      const willOpen = content.classList.contains('hidden');
+      content.classList.toggle('hidden', !willOpen);
+      button.setAttribute('aria-expanded', String(willOpen));
+      if (chevron) chevron.className = `fa-solid fa-chevron-${willOpen ? 'up' : 'down'} text-xs text-slate-400`;
     }
 
     function toggleFixedMonthlyBreakdown(key) {
